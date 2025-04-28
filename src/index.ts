@@ -1,30 +1,18 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import client from './services/db';
+import userRoutes from './routes/user.routes';
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/', userRoutes);
 
 // Ruta de ejemplo
 app.get('/', (_req, res) => {
   res.send('API funcionando!');
-});
-
-// Ruta para obtener usuarios desde la base de datos
-app.get('/usuarios', async (_req, res) => {
-  try {
-    const result = await client.query('SELECT * FROM personas');
-    res.json(result.rows);
-  } catch (error) {
-
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).send('Error al obtener los usuarios');
-
-  }
 });
 
 const PORT = process.env.PORT || 3000;
