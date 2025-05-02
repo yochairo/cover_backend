@@ -11,6 +11,26 @@ export const getPersonas = async (req:Request, res: Response) => {
   }
 };
 
+export const getPersona = async (req:Request,res:Response)=>{
+  try {
+    const persona = await personaService.getPersona(Number(req.params.id));
+    res.json(persona);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener persona', error });
+
+  }
+}
+
+export const create = async (req:Request, res: Response) => {
+  try {
+    const persona = await personaService.createPersona(req.body);
+    res.json(persona);
+  } catch (error) {
+    res.status(404).json({ message: "Error al crear persona",error });
+
+  }
+}
+
 
 
 

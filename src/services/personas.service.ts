@@ -12,11 +12,6 @@ export const getPersona = async (id:number) => {
 };
 
 
-
-/* import { User } from '../models/user.model';
-
-export const getAllUsers = async (): Promise<User[]> => {
-    const { rows } = await db.query('SELECT id, nombre_completo AS nombre, correo, nombre_usuario AS usuario, rol, estado FROM personas');
-    return rows as User[];
-};
- */
+export const createPersona = async (data:any) => {
+    return await db.personas.create(data);
+}

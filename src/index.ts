@@ -23,17 +23,11 @@ app.use('/api', personaRoutes);
 const PORT = process.env.PORT || 3000;
 
 
-/* app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-}); */
 
 const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Conectado a la base de datos');
-
-    // Si no vas a modificar las tablas desde código, no uses sync
-    // await sequelize.sync({ alter: true });
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
