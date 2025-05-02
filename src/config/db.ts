@@ -1,14 +1,15 @@
-import { Client } from 'pg';
 import dotenv from 'dotenv';
+import { Sequelize } from 'sequelize';
+import  {initModels}  from '../models/init-models';
 
 dotenv.config();
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
+const sequelize = new Sequelize(process.env.DATABASE_URL!, {
+  dialect: 'postgres',
+  logging: false,
 });
 
-client.connect()
-  .then(() => console.log('Conexión a PostgreSQL establecida.'))
-  .catch((err: any) => console.error('Error de conexión a PostgreSQL:', err));
+const db = initModels(sequelize);
 
-export default client;
+
+export  {sequelize,db};
