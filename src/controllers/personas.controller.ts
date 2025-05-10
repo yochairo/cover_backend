@@ -31,7 +31,30 @@ export const create = async (req:Request, res: Response) => {
   }
 }
 
+export const updatePersonaBasico = async (req: Request, res: Response) => {
+  try {
+    const persona = await personaService.updatePersonaBasico(Number(req.params.id), req.body);
+    res.json(persona);
+  } catch (error) {
+    res.status(403).json({ message: "No autorizado para editar completamente", error });
+  }
+}
 
+export const updatePersonaAdmin = async (req: Request, res: Response) => {
+  try {
+    // Validamos que el usuario esté autenticado y sea admin
+    const user = await personaService.updatePersonaBasico(Number(req.params.id), req.body);
+
+    if (user.rol !== 'admin') {
+      return res.status(403).json({ message: 'Acceso denegado: solo administradores pueden realizar esta acción.' });
+    }
+
+    const persona = await personaService.updatePersonaAdmin(Number(req.params.id), req.body);
+    res.json(persona);
+  } catch (error) {
+    res.status(403).json({ message: "Error en edición admin", error });
+  }
+}
 
 
 

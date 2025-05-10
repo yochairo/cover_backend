@@ -5,31 +5,31 @@ import type { reservas, reservasId } from './reservas';
 
 export interface promocionesAttributes {
   id: number;
-  discoteca_id?: number;
-  'código': string;
-  'descripción'?: string;
+  discoteca_id: number;
+  codigo?: string;
+  descripcion?: string;
   descuento_porcentaje?: number;
   descuento_fijo?: number;
-  fecha_inicio: Date;
-  fecha_fin: Date;
+  fecha_inicio?: Date;
+  fecha_fin?: Date;
   estado?: string;
   creado_en?: Date;
 }
 
 export type promocionesPk = "id";
 export type promocionesId = promociones[promocionesPk];
-export type promocionesOptionalAttributes = "id" | "discoteca_id" | "descripción" | "descuento_porcentaje" | "descuento_fijo" | "estado" | "creado_en";
+export type promocionesOptionalAttributes = "id" | "codigo" | "descripcion" | "descuento_porcentaje" | "descuento_fijo" | "fecha_inicio" | "fecha_fin" | "estado" | "creado_en";
 export type promocionesCreationAttributes = Optional<promocionesAttributes, promocionesOptionalAttributes>;
 
 export class promociones extends Model<promocionesAttributes, promocionesCreationAttributes> implements promocionesAttributes {
   id!: number;
-  discoteca_id?: number;
-  'código'!: string;
-  'descripción'?: string;
+  discoteca_id!: number;
+  codigo?: string;
+  descripcion?: string;
   descuento_porcentaje?: number;
   descuento_fijo?: number;
-  fecha_inicio!: Date;
-  fecha_fin!: Date;
+  fecha_inicio?: Date;
+  fecha_fin?: Date;
   estado?: string;
   creado_en?: Date;
 
@@ -61,19 +61,18 @@ export class promociones extends Model<promocionesAttributes, promocionesCreatio
     },
     discoteca_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'discotecas',
         key: 'id'
       }
     },
-    'código': {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: "promociones_código_key"
+    codigo: {
+      type: DataTypes.STRING(30),
+      allowNull: true
     },
-    'descripción': {
-      type: DataTypes.TEXT,
+    descripcion: {
+      type: DataTypes.STRING(255),
       allowNull: true
     },
     descuento_porcentaje: {
@@ -86,21 +85,19 @@ export class promociones extends Model<promocionesAttributes, promocionesCreatio
     },
     fecha_inicio: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: true
     },
     fecha_fin: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: true
     },
     estado: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "activa"
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     }
   }, {
     sequelize,
@@ -108,13 +105,6 @@ export class promociones extends Model<promocionesAttributes, promocionesCreatio
     schema: 'public',
     timestamps: false,
     indexes: [
-      {
-        name: "promociones_código_key",
-        unique: true,
-        fields: [
-          { name: "código" },
-        ]
-      },
       {
         name: "promociones_pkey",
         unique: true,

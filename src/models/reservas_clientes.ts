@@ -5,8 +5,8 @@ import type { reservas, reservasId } from './reservas';
 
 export interface reservas_clientesAttributes {
   id: number;
-  reserva_id: number;
   cliente_id: number;
+  reserva_id: number;
   creado_en?: Date;
 }
 
@@ -17,8 +17,8 @@ export type reservas_clientesCreationAttributes = Optional<reservas_clientesAttr
 
 export class reservas_clientes extends Model<reservas_clientesAttributes, reservas_clientesCreationAttributes> implements reservas_clientesAttributes {
   id!: number;
-  reserva_id!: number;
   cliente_id!: number;
+  reserva_id!: number;
   creado_en?: Date;
 
   // reservas_clientes belongsTo clientes via cliente_id
@@ -40,14 +40,6 @@ export class reservas_clientes extends Model<reservas_clientesAttributes, reserv
       allowNull: false,
       primaryKey: true
     },
-    reserva_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'reservas',
-        key: 'id'
-      }
-    },
     cliente_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -56,10 +48,17 @@ export class reservas_clientes extends Model<reservas_clientesAttributes, reserv
         key: 'id'
       }
     },
+    reserva_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'reservas',
+        key: 'id'
+      }
+    },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     }
   }, {
     sequelize,

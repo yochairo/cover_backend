@@ -8,6 +8,7 @@ const router = Router();
 
 router.get('/personas',personasController.getPersonas);
 router.get('/persona/:id',personasController.getPersona);
+router.put('/personas/:id', personasController.updatePersonaBasico);
 router.post('/createPersona', personasController.create);
 
 

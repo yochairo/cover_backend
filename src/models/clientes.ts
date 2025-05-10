@@ -1,7 +1,5 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { historial_pagos, historial_pagosId } from './historial_pagos';
-import type { historial_reservas, historial_reservasId } from './historial_reservas';
 import type { pagos, pagosId } from './pagos';
 import type { personas, personasId } from './personas';
 import type { reservas, reservasId } from './reservas';
@@ -10,47 +8,23 @@ import type { reservas_clientes, reservas_clientesId } from './reservas_clientes
 export interface clientesAttributes {
   id: number;
   persona_id: number;
-  preferencias?: string;
+  preferencia?: string;
   fecha_registro?: Date;
   ultima_reserva?: Date;
 }
 
 export type clientesPk = "id";
 export type clientesId = clientes[clientesPk];
-export type clientesOptionalAttributes = "id" | "preferencias" | "fecha_registro" | "ultima_reserva";
+export type clientesOptionalAttributes = "id" | "preferencia" | "fecha_registro" | "ultima_reserva";
 export type clientesCreationAttributes = Optional<clientesAttributes, clientesOptionalAttributes>;
 
 export class clientes extends Model<clientesAttributes, clientesCreationAttributes> implements clientesAttributes {
   id!: number;
   persona_id!: number;
-  preferencias?: string;
+  preferencia?: string;
   fecha_registro?: Date;
   ultima_reserva?: Date;
 
-  // clientes hasMany historial_pagos via cliente_id
-  historial_pagos!: historial_pagos[];
-  getHistorial_pagos!: Sequelize.HasManyGetAssociationsMixin<historial_pagos>;
-  setHistorial_pagos!: Sequelize.HasManySetAssociationsMixin<historial_pagos, historial_pagosId>;
-  addHistorial_pago!: Sequelize.HasManyAddAssociationMixin<historial_pagos, historial_pagosId>;
-  addHistorial_pagos!: Sequelize.HasManyAddAssociationsMixin<historial_pagos, historial_pagosId>;
-  createHistorial_pago!: Sequelize.HasManyCreateAssociationMixin<historial_pagos>;
-  removeHistorial_pago!: Sequelize.HasManyRemoveAssociationMixin<historial_pagos, historial_pagosId>;
-  removeHistorial_pagos!: Sequelize.HasManyRemoveAssociationsMixin<historial_pagos, historial_pagosId>;
-  hasHistorial_pago!: Sequelize.HasManyHasAssociationMixin<historial_pagos, historial_pagosId>;
-  hasHistorial_pagos!: Sequelize.HasManyHasAssociationsMixin<historial_pagos, historial_pagosId>;
-  countHistorial_pagos!: Sequelize.HasManyCountAssociationsMixin;
-  // clientes hasMany historial_reservas via cliente_id
-  historial_reservas!: historial_reservas[];
-  getHistorial_reservas!: Sequelize.HasManyGetAssociationsMixin<historial_reservas>;
-  setHistorial_reservas!: Sequelize.HasManySetAssociationsMixin<historial_reservas, historial_reservasId>;
-  addHistorial_reserva!: Sequelize.HasManyAddAssociationMixin<historial_reservas, historial_reservasId>;
-  addHistorial_reservas!: Sequelize.HasManyAddAssociationsMixin<historial_reservas, historial_reservasId>;
-  createHistorial_reserva!: Sequelize.HasManyCreateAssociationMixin<historial_reservas>;
-  removeHistorial_reserva!: Sequelize.HasManyRemoveAssociationMixin<historial_reservas, historial_reservasId>;
-  removeHistorial_reservas!: Sequelize.HasManyRemoveAssociationsMixin<historial_reservas, historial_reservasId>;
-  hasHistorial_reserva!: Sequelize.HasManyHasAssociationMixin<historial_reservas, historial_reservasId>;
-  hasHistorial_reservas!: Sequelize.HasManyHasAssociationsMixin<historial_reservas, historial_reservasId>;
-  countHistorial_reservas!: Sequelize.HasManyCountAssociationsMixin;
   // clientes hasMany pagos via cliente_id
   pagos!: pagos[];
   getPagos!: Sequelize.HasManyGetAssociationsMixin<pagos>;
@@ -107,17 +81,15 @@ export class clientes extends Model<clientesAttributes, clientesCreationAttribut
       references: {
         model: 'personas',
         key: 'id'
-      },
-      unique: "clientes_persona_id_key"
+      }
     },
-    preferencias: {
-      type: DataTypes.TEXT,
+    preferencia: {
+      type: DataTypes.STRING(255),
       allowNull: true
     },
     fecha_registro: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     },
     ultima_reserva: {
       type: DataTypes.DATE,
@@ -129,13 +101,6 @@ export class clientes extends Model<clientesAttributes, clientesCreationAttribut
     schema: 'public',
     timestamps: false,
     indexes: [
-      {
-        name: "clientes_persona_id_key",
-        unique: true,
-        fields: [
-          { name: "persona_id" },
-        ]
-      },
       {
         name: "clientes_pkey",
         unique: true,

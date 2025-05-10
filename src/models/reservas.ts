@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { clientes, clientesId } from './clientes';
-import type { historial_reservas, historial_reservasId } from './historial_reservas';
+import type { detalles_reserva, detalles_reservaCreationAttributes, detalles_reservaId } from './detalles_reserva';
 import type { mesas, mesasId } from './mesas';
 import type { pagos, pagosId } from './pagos';
 import type { promociones, promocionesId } from './promociones';
@@ -10,32 +10,28 @@ import type { reservas_clientes, reservas_clientesId } from './reservas_clientes
 export interface reservasAttributes {
   id: number;
   cliente_organizador_id: number;
-  mesa_id: number;
+  mesa_id?: number;
   promocion_id?: number;
-  fecha_reserva: Date;
+  fecha_reserva?: Date;
   estado?: string;
-  invitados: number;
   precio_total?: number;
-  notas?: string;
   creado_en?: Date;
   actualizado_en?: Date;
 }
 
 export type reservasPk = "id";
 export type reservasId = reservas[reservasPk];
-export type reservasOptionalAttributes = "id" | "promocion_id" | "estado" | "precio_total" | "notas" | "creado_en" | "actualizado_en";
+export type reservasOptionalAttributes = "id" | "mesa_id" | "promocion_id" | "fecha_reserva" | "estado" | "precio_total" | "creado_en" | "actualizado_en";
 export type reservasCreationAttributes = Optional<reservasAttributes, reservasOptionalAttributes>;
 
 export class reservas extends Model<reservasAttributes, reservasCreationAttributes> implements reservasAttributes {
   id!: number;
   cliente_organizador_id!: number;
-  mesa_id!: number;
+  mesa_id?: number;
   promocion_id?: number;
-  fecha_reserva!: Date;
+  fecha_reserva?: Date;
   estado?: string;
-  invitados!: number;
   precio_total?: number;
-  notas?: string;
   creado_en?: Date;
   actualizado_en?: Date;
 
@@ -54,18 +50,11 @@ export class reservas extends Model<reservasAttributes, reservasCreationAttribut
   getPromocion!: Sequelize.BelongsToGetAssociationMixin<promociones>;
   setPromocion!: Sequelize.BelongsToSetAssociationMixin<promociones, promocionesId>;
   createPromocion!: Sequelize.BelongsToCreateAssociationMixin<promociones>;
-  // reservas hasMany historial_reservas via reserva_id
-  historial_reservas!: historial_reservas[];
-  getHistorial_reservas!: Sequelize.HasManyGetAssociationsMixin<historial_reservas>;
-  setHistorial_reservas!: Sequelize.HasManySetAssociationsMixin<historial_reservas, historial_reservasId>;
-  addHistorial_reserva!: Sequelize.HasManyAddAssociationMixin<historial_reservas, historial_reservasId>;
-  addHistorial_reservas!: Sequelize.HasManyAddAssociationsMixin<historial_reservas, historial_reservasId>;
-  createHistorial_reserva!: Sequelize.HasManyCreateAssociationMixin<historial_reservas>;
-  removeHistorial_reserva!: Sequelize.HasManyRemoveAssociationMixin<historial_reservas, historial_reservasId>;
-  removeHistorial_reservas!: Sequelize.HasManyRemoveAssociationsMixin<historial_reservas, historial_reservasId>;
-  hasHistorial_reserva!: Sequelize.HasManyHasAssociationMixin<historial_reservas, historial_reservasId>;
-  hasHistorial_reservas!: Sequelize.HasManyHasAssociationsMixin<historial_reservas, historial_reservasId>;
-  countHistorial_reservas!: Sequelize.HasManyCountAssociationsMixin;
+  // reservas hasOne detalles_reserva via reserva_id
+  detalles_reserva!: detalles_reserva;
+  getDetalles_reserva!: Sequelize.HasOneGetAssociationMixin<detalles_reserva>;
+  setDetalles_reserva!: Sequelize.HasOneSetAssociationMixin<detalles_reserva, detalles_reservaId>;
+  createDetalles_reserva!: Sequelize.HasOneCreateAssociationMixin<detalles_reserva>;
   // reservas hasMany pagos via reserva_id
   pagos!: pagos[];
   getPagos!: Sequelize.HasManyGetAssociationsMixin<pagos>;
@@ -109,7 +98,7 @@ export class reservas extends Model<reservasAttributes, reservasCreationAttribut
     },
     mesa_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'mesas',
         key: 'id'
@@ -125,29 +114,19 @@ export class reservas extends Model<reservasAttributes, reservasCreationAttribut
     },
     fecha_reserva: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: true
     },
     estado: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "pendiente"
-    },
-    invitados: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     precio_total: {
       type: DataTypes.DECIMAL,
       allowNull: true
     },
-    notas: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     },
     actualizado_en: {
       type: DataTypes.DATE,
@@ -157,6 +136,7 @@ export class reservas extends Model<reservasAttributes, reservasCreationAttribut
     sequelize,
     tableName: 'reservas',
     schema: 'public',
+    hasTrigger: true,
     timestamps: false,
     indexes: [
       {

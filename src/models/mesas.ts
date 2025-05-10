@@ -8,31 +8,27 @@ export interface mesasAttributes {
   id: number;
   discoteca_id: number;
   categoria_id: number;
-  'número_mesa': string;
+  numero_mesa: string;
   capacidad: number;
+  ubicacion?: string;
   estado?: string;
-  precio?: number;
-  'ubicación'?: string;
   creado_en?: Date;
-  actualizado_en?: Date;
 }
 
 export type mesasPk = "id";
 export type mesasId = mesas[mesasPk];
-export type mesasOptionalAttributes = "id" | "estado" | "precio" | "ubicación" | "creado_en" | "actualizado_en";
+export type mesasOptionalAttributes = "id" | "ubicacion" | "estado" | "creado_en";
 export type mesasCreationAttributes = Optional<mesasAttributes, mesasOptionalAttributes>;
 
 export class mesas extends Model<mesasAttributes, mesasCreationAttributes> implements mesasAttributes {
   id!: number;
   discoteca_id!: number;
   categoria_id!: number;
-  'número_mesa'!: string;
+  numero_mesa!: string;
   capacidad!: number;
+  ubicacion?: string;
   estado?: string;
-  precio?: number;
-  'ubicación'?: string;
   creado_en?: Date;
-  actualizado_en?: Date;
 
   // mesas belongsTo categorias_mesas via categoria_id
   categorium!: categorias_mesas;
@@ -81,33 +77,23 @@ export class mesas extends Model<mesasAttributes, mesasCreationAttributes> imple
         key: 'id'
       }
     },
-    'número_mesa': {
-      type: DataTypes.STRING(255),
+    numero_mesa: {
+      type: DataTypes.STRING(10),
       allowNull: false
     },
     capacidad: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    estado: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "disponible"
-    },
-    precio: {
-      type: DataTypes.DECIMAL,
+    ubicacion: {
+      type: DataTypes.STRING(100),
       allowNull: true
     },
-    'ubicación': {
-      type: DataTypes.STRING(255),
+    estado: {
+      type: DataTypes.STRING(20),
       allowNull: true
     },
     creado_en: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
-    },
-    actualizado_en: {
       type: DataTypes.DATE,
       allowNull: true
     }

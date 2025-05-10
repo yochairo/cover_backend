@@ -5,20 +5,20 @@ import type { mesas, mesasId } from './mesas';
 export interface categorias_mesasAttributes {
   id: number;
   nombre: string;
-  'descripción'?: string;
+  descripcion?: string;
   precio_base?: number;
   creado_en?: Date;
 }
 
 export type categorias_mesasPk = "id";
 export type categorias_mesasId = categorias_mesas[categorias_mesasPk];
-export type categorias_mesasOptionalAttributes = "id" | "descripción" | "precio_base" | "creado_en";
+export type categorias_mesasOptionalAttributes = "id" | "descripcion" | "precio_base" | "creado_en";
 export type categorias_mesasCreationAttributes = Optional<categorias_mesasAttributes, categorias_mesasOptionalAttributes>;
 
 export class categorias_mesas extends Model<categorias_mesasAttributes, categorias_mesasCreationAttributes> implements categorias_mesasAttributes {
   id!: number;
   nombre!: string;
-  'descripción'?: string;
+  descripcion?: string;
   precio_base?: number;
   creado_en?: Date;
 
@@ -44,12 +44,11 @@ export class categorias_mesas extends Model<categorias_mesasAttributes, categori
       primaryKey: true
     },
     nombre: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: "categorias_mesas_nombre_key"
+      type: DataTypes.STRING(100),
+      allowNull: false
     },
-    'descripción': {
-      type: DataTypes.TEXT,
+    descripcion: {
+      type: DataTypes.STRING(255),
       allowNull: true
     },
     precio_base: {
@@ -58,8 +57,7 @@ export class categorias_mesas extends Model<categorias_mesasAttributes, categori
     },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     }
   }, {
     sequelize,
@@ -67,13 +65,6 @@ export class categorias_mesas extends Model<categorias_mesasAttributes, categori
     schema: 'public',
     timestamps: false,
     indexes: [
-      {
-        name: "categorias_mesas_nombre_key",
-        unique: true,
-        fields: [
-          { name: "nombre" },
-        ]
-      },
       {
         name: "categorias_mesas_pkey",
         unique: true,

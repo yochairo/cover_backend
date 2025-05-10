@@ -7,20 +7,20 @@ export interface personal_discotecasAttributes {
   id: number;
   persona_id: number;
   discoteca_id: number;
-  rol_personal?: string;
+  rol_personal: string;
   creado_en?: Date;
 }
 
 export type personal_discotecasPk = "id";
 export type personal_discotecasId = personal_discotecas[personal_discotecasPk];
-export type personal_discotecasOptionalAttributes = "id" | "rol_personal" | "creado_en";
+export type personal_discotecasOptionalAttributes = "id" | "creado_en";
 export type personal_discotecasCreationAttributes = Optional<personal_discotecasAttributes, personal_discotecasOptionalAttributes>;
 
 export class personal_discotecas extends Model<personal_discotecasAttributes, personal_discotecasCreationAttributes> implements personal_discotecasAttributes {
   id!: number;
   persona_id!: number;
   discoteca_id!: number;
-  rol_personal?: string;
+  rol_personal!: string;
   creado_en?: Date;
 
   // personal_discotecas belongsTo discotecas via discoteca_id
@@ -59,13 +59,12 @@ export class personal_discotecas extends Model<personal_discotecasAttributes, pe
       }
     },
     rol_personal: {
-      type: DataTypes.STRING(255),
-      allowNull: true
+      type: DataTypes.STRING(50),
+      allowNull: false
     },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     }
   }, {
     sequelize,

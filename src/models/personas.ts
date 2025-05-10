@@ -1,14 +1,14 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { clientes, clientesCreationAttributes, clientesId } from './clientes';
+import type { clientes, clientesId } from './clientes';
 import type { personal_discotecas, personal_discotecasId } from './personal_discotecas';
 
 export interface personasAttributes {
   id: number;
-  nombre_usuario: string;
-  correo: string;
-  contrasena: string;
-  nombre_completo: string;
+  nombre_usuario?: string;
+  correo?: string;
+  contrasena?: string;
+  nombre_completo?: string;
   telefono?: string;
   carnet?: string;
   rol?: string;
@@ -19,15 +19,15 @@ export interface personasAttributes {
 
 export type personasPk = "id";
 export type personasId = personas[personasPk];
-export type personasOptionalAttributes = "id" | "telefono" | "carnet" | "rol" | "estado" | "creado_en" | "actualizado_en";
+export type personasOptionalAttributes = "id" | "nombre_usuario" | "correo" | "contrasena" | "nombre_completo" | "telefono" | "carnet" | "rol" | "estado" | "creado_en" | "actualizado_en";
 export type personasCreationAttributes = Optional<personasAttributes, personasOptionalAttributes>;
 
 export class personas extends Model<personasAttributes, personasCreationAttributes> implements personasAttributes {
   id!: number;
-  nombre_usuario!: string;
-  correo!: string;
-  contrasena!: string;
-  nombre_completo!: string;
+  nombre_usuario?: string;
+  correo?: string;
+  contrasena?: string;
+  nombre_completo?: string;
   telefono?: string;
   carnet?: string;
   rol?: string;
@@ -35,11 +35,18 @@ export class personas extends Model<personasAttributes, personasCreationAttribut
   creado_en?: Date;
   actualizado_en?: Date;
 
-  // personas hasOne clientes via persona_id
-  cliente!: clientes;
-  getCliente!: Sequelize.HasOneGetAssociationMixin<clientes>;
-  setCliente!: Sequelize.HasOneSetAssociationMixin<clientes, clientesId>;
-  createCliente!: Sequelize.HasOneCreateAssociationMixin<clientes>;
+  // personas hasMany clientes via persona_id
+  clientes!: clientes[];
+  getClientes!: Sequelize.HasManyGetAssociationsMixin<clientes>;
+  setClientes!: Sequelize.HasManySetAssociationsMixin<clientes, clientesId>;
+  addCliente!: Sequelize.HasManyAddAssociationMixin<clientes, clientesId>;
+  addClientes!: Sequelize.HasManyAddAssociationsMixin<clientes, clientesId>;
+  createCliente!: Sequelize.HasManyCreateAssociationMixin<clientes>;
+  removeCliente!: Sequelize.HasManyRemoveAssociationMixin<clientes, clientesId>;
+  removeClientes!: Sequelize.HasManyRemoveAssociationsMixin<clientes, clientesId>;
+  hasCliente!: Sequelize.HasManyHasAssociationMixin<clientes, clientesId>;
+  hasClientes!: Sequelize.HasManyHasAssociationsMixin<clientes, clientesId>;
+  countClientes!: Sequelize.HasManyCountAssociationsMixin;
   // personas hasMany personal_discotecas via persona_id
   personal_discotecas!: personal_discotecas[];
   getPersonal_discotecas!: Sequelize.HasManyGetAssociationsMixin<personal_discotecas>;
@@ -62,46 +69,40 @@ export class personas extends Model<personasAttributes, personasCreationAttribut
       primaryKey: true
     },
     nombre_usuario: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: "personas_nombre_usuario_key"
+      type: DataTypes.STRING(50),
+      allowNull: true
     },
     correo: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: "personas_correo_key"
+      type: DataTypes.STRING(100),
+      allowNull: true
     },
     contrasena: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: true
     },
     nombre_completo: {
-      type: DataTypes.STRING(255),
-      allowNull: false
+      type: DataTypes.STRING(100),
+      allowNull: true
     },
     telefono: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(20),
       allowNull: true
     },
     carnet: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      unique: "personas_carnet_key"
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     rol: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "cliente"
+      type: DataTypes.STRING(30),
+      allowNull: true
     },
     estado: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "activo"
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
+      allowNull: true
     },
     actualizado_en: {
       type: DataTypes.DATE,
@@ -113,27 +114,6 @@ export class personas extends Model<personasAttributes, personasCreationAttribut
     schema: 'public',
     timestamps: false,
     indexes: [
-      {
-        name: "personas_carnet_key",
-        unique: true,
-        fields: [
-          { name: "carnet" },
-        ]
-      },
-      {
-        name: "personas_correo_key",
-        unique: true,
-        fields: [
-          { name: "correo" },
-        ]
-      },
-      {
-        name: "personas_nombre_usuario_key",
-        unique: true,
-        fields: [
-          { name: "nombre_usuario" },
-        ]
-      },
       {
         name: "personas_pkey",
         unique: true,

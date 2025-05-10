@@ -1,5 +1,8 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
+import type { anuncios, anunciosId } from './anuncios';
+import type { entradas, entradasId } from './entradas';
+import type { eventos, eventosId } from './eventos';
 import type { mesas, mesasId } from './mesas';
 import type { personal_discotecas, personal_discotecasId } from './personal_discotecas';
 import type { promociones, promocionesId } from './promociones';
@@ -7,35 +10,69 @@ import type { promociones, promocionesId } from './promociones';
 export interface discotecasAttributes {
   id: number;
   nombre: string;
-  'dirección': string;
-  'teléfono': string;
+  direccion?: string;
+  telefono?: string;
   correo_contacto?: string;
   capacidad_total?: number;
   horario_apertura?: string;
   horario_cierre?: string;
   estado?: string;
   creado_en?: Date;
-  actualizado_en?: Date;
 }
 
 export type discotecasPk = "id";
 export type discotecasId = discotecas[discotecasPk];
-export type discotecasOptionalAttributes = "id" | "correo_contacto" | "capacidad_total" | "horario_apertura" | "horario_cierre" | "estado" | "creado_en" | "actualizado_en";
+export type discotecasOptionalAttributes = "id" | "direccion" | "telefono" | "correo_contacto" | "capacidad_total" | "horario_apertura" | "horario_cierre" | "estado" | "creado_en";
 export type discotecasCreationAttributes = Optional<discotecasAttributes, discotecasOptionalAttributes>;
 
 export class discotecas extends Model<discotecasAttributes, discotecasCreationAttributes> implements discotecasAttributes {
   id!: number;
   nombre!: string;
-  'dirección'!: string;
-  'teléfono'!: string;
+  direccion?: string;
+  telefono?: string;
   correo_contacto?: string;
   capacidad_total?: number;
   horario_apertura?: string;
   horario_cierre?: string;
   estado?: string;
   creado_en?: Date;
-  actualizado_en?: Date;
 
+  // discotecas hasMany anuncios via discoteca_id
+  anuncios!: anuncios[];
+  getAnuncios!: Sequelize.HasManyGetAssociationsMixin<anuncios>;
+  setAnuncios!: Sequelize.HasManySetAssociationsMixin<anuncios, anunciosId>;
+  addAnuncio!: Sequelize.HasManyAddAssociationMixin<anuncios, anunciosId>;
+  addAnuncios!: Sequelize.HasManyAddAssociationsMixin<anuncios, anunciosId>;
+  createAnuncio!: Sequelize.HasManyCreateAssociationMixin<anuncios>;
+  removeAnuncio!: Sequelize.HasManyRemoveAssociationMixin<anuncios, anunciosId>;
+  removeAnuncios!: Sequelize.HasManyRemoveAssociationsMixin<anuncios, anunciosId>;
+  hasAnuncio!: Sequelize.HasManyHasAssociationMixin<anuncios, anunciosId>;
+  hasAnuncios!: Sequelize.HasManyHasAssociationsMixin<anuncios, anunciosId>;
+  countAnuncios!: Sequelize.HasManyCountAssociationsMixin;
+  // discotecas hasMany entradas via discoteca_id
+  entradas!: entradas[];
+  getEntradas!: Sequelize.HasManyGetAssociationsMixin<entradas>;
+  setEntradas!: Sequelize.HasManySetAssociationsMixin<entradas, entradasId>;
+  addEntrada!: Sequelize.HasManyAddAssociationMixin<entradas, entradasId>;
+  addEntradas!: Sequelize.HasManyAddAssociationsMixin<entradas, entradasId>;
+  createEntrada!: Sequelize.HasManyCreateAssociationMixin<entradas>;
+  removeEntrada!: Sequelize.HasManyRemoveAssociationMixin<entradas, entradasId>;
+  removeEntradas!: Sequelize.HasManyRemoveAssociationsMixin<entradas, entradasId>;
+  hasEntrada!: Sequelize.HasManyHasAssociationMixin<entradas, entradasId>;
+  hasEntradas!: Sequelize.HasManyHasAssociationsMixin<entradas, entradasId>;
+  countEntradas!: Sequelize.HasManyCountAssociationsMixin;
+  // discotecas hasMany eventos via discoteca_id
+  eventos!: eventos[];
+  getEventos!: Sequelize.HasManyGetAssociationsMixin<eventos>;
+  setEventos!: Sequelize.HasManySetAssociationsMixin<eventos, eventosId>;
+  addEvento!: Sequelize.HasManyAddAssociationMixin<eventos, eventosId>;
+  addEventos!: Sequelize.HasManyAddAssociationsMixin<eventos, eventosId>;
+  createEvento!: Sequelize.HasManyCreateAssociationMixin<eventos>;
+  removeEvento!: Sequelize.HasManyRemoveAssociationMixin<eventos, eventosId>;
+  removeEventos!: Sequelize.HasManyRemoveAssociationsMixin<eventos, eventosId>;
+  hasEvento!: Sequelize.HasManyHasAssociationMixin<eventos, eventosId>;
+  hasEventos!: Sequelize.HasManyHasAssociationsMixin<eventos, eventosId>;
+  countEventos!: Sequelize.HasManyCountAssociationsMixin;
   // discotecas hasMany mesas via discoteca_id
   mesas!: mesas[];
   getMesas!: Sequelize.HasManyGetAssociationsMixin<mesas>;
@@ -82,19 +119,19 @@ export class discotecas extends Model<discotecasAttributes, discotecasCreationAt
       primaryKey: true
     },
     nombre: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: false
     },
-    'dirección': {
+    direccion: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: true
     },
-    'teléfono': {
-      type: DataTypes.STRING(255),
-      allowNull: false
+    telefono: {
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     correo_contacto: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: true
     },
     capacidad_total: {
@@ -110,16 +147,10 @@ export class discotecas extends Model<discotecasAttributes, discotecasCreationAt
       allowNull: true
     },
     estado: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: "activa"
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     creado_en: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.Sequelize.fn('now')
-    },
-    actualizado_en: {
       type: DataTypes.DATE,
       allowNull: true
     }
