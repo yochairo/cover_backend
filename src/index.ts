@@ -17,7 +17,7 @@ app.get('/', (_req, res) => {
   res.send('API funcionando!');
 });
 
-app.use('/api', personaRoutes);
+app.use('/persona', personaRoutes);
 
 
 const PORT = process.env.PORT || 3000;

@@ -1,6 +1,81 @@
 import { Request, Response } from 'express';
 import * as personaService from '../services/personas.service';
 
+//REGISTRO DE CLIENTE
+export const registerCliente = async (req:Request,res:Response)=>{
+  try {
+    const {
+      nombre_usuario,
+      correo,
+      contrasena,
+      nombre_completo,
+      telefono,
+      carnet
+    } = req.body;
+    const result = await personaService.registerCliente(nombre_usuario,
+      correo,
+      contrasena,
+      nombre_completo,
+      telefono,
+      carnet);
+      res.status(201).json(result);
+
+  } catch (error) {
+    res.status(400).json({ message: error});
+  }
+};
+
+//INICIAR SESION DE CLIENTE
+export const loginCliente = async(req:Request,res:Response)=>{
+  try {
+    const {correo,contrasena} = req.body;
+    const resultado = await personaService.loginCliente(correo,contrasena);
+    res.json(resultado);
+  } catch (error) {
+    res.status(401).json({message: error});
+  }
+};
+
+//REGISTRO DE PERSONAL DISCOTECA
+export const registerPersonalD = async (req:Request,res:Response)=>{
+  try {
+    const {
+      nombre_usuario,
+      correo,
+      contrasena,
+      nombre_completo,
+      telefono,
+      carnet
+    } = req.body;
+    const result = await personaService.registerPersonalD(nombre_usuario,
+      correo,
+      contrasena,
+      nombre_completo,
+      telefono,
+      carnet);
+      res.status(201).json(result);
+
+  } catch (error) {
+    res.status(400).json({ message: error});
+  }
+};
+
+//LOGIN PERSONAL DISCOTECA
+export const loginPersonalD = async(req:Request,res:Response)=>{
+  try {
+    const {correo,contrasena} = req.body;
+    const resultado = await personaService.loginPersonalD(correo,contrasena);
+    res.json(resultado);
+  } catch (error) {
+    res.status(401).json({message: error});
+  }
+};
+
+
+
+
+
+
 
 export const getPersonas = async (req:Request, res: Response) => {
   try {
@@ -17,7 +92,6 @@ export const getPersona = async (req:Request,res:Response)=>{
     res.json(persona);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener persona', error });
-
   }
 }
 
