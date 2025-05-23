@@ -72,11 +72,6 @@ export const loginPersonalD = async(req:Request,res:Response)=>{
 };
 
 
-
-
-
-
-
 export const getPersonas = async (req:Request, res: Response) => {
   try {
     const personas = await personaService.getPersonas();
@@ -130,5 +125,6 @@ export const updatePersonaAdmin = async (req: Request, res: Response) => {
   }
 }
 
+//Gadiel estuvo aqui
 
 
