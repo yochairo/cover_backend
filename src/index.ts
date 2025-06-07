@@ -20,7 +20,7 @@ app.get('/', (_req, res) => {
 app.use('/persona', personaRoutes);
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 
 
@@ -29,9 +29,10 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Conectado a la base de datos');
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Servidor corriendo en http://0.0.0.0:${PORT}`);
     });
+    
   } catch (error) {
     console.error('❌ Error al conectar con la base de datos:', error);
   }
