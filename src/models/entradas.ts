@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { categorias_entradas, categorias_entradasId } from './categorias_entradas';
+import type { clientes, clientesId } from './clientes';
 import type { discotecas, discotecasId } from './discotecas';
 
 export interface entradasAttributes {
@@ -12,11 +13,12 @@ export interface entradasAttributes {
   disponible?: boolean;
   fecha_disponible?: Date;
   creado_en?: Date;
+  id_cliente?: number;
 }
 
 export type entradasPk = "id";
 export type entradasId = entradas[entradasPk];
-export type entradasOptionalAttributes = "id" | "disponible" | "fecha_disponible" | "creado_en";
+export type entradasOptionalAttributes = "id" | "disponible" | "fecha_disponible" | "creado_en" | "id_cliente";
 export type entradasCreationAttributes = Optional<entradasAttributes, entradasOptionalAttributes>;
 
 export class entradas extends Model<entradasAttributes, entradasCreationAttributes> implements entradasAttributes {
@@ -28,12 +30,18 @@ export class entradas extends Model<entradasAttributes, entradasCreationAttribut
   disponible?: boolean;
   fecha_disponible?: Date;
   creado_en?: Date;
+  id_cliente?: number;
 
   // entradas belongsTo categorias_entradas via categoria_id
   categorium!: categorias_entradas;
   getCategorium!: Sequelize.BelongsToGetAssociationMixin<categorias_entradas>;
   setCategorium!: Sequelize.BelongsToSetAssociationMixin<categorias_entradas, categorias_entradasId>;
   createCategorium!: Sequelize.BelongsToCreateAssociationMixin<categorias_entradas>;
+  // entradas belongsTo clientes via id_cliente
+  id_cliente_cliente!: clientes;
+  getId_cliente_cliente!: Sequelize.BelongsToGetAssociationMixin<clientes>;
+  setId_cliente_cliente!: Sequelize.BelongsToSetAssociationMixin<clientes, clientesId>;
+  createId_cliente_cliente!: Sequelize.BelongsToCreateAssociationMixin<clientes>;
   // entradas belongsTo discotecas via discoteca_id
   discoteca!: discotecas;
   getDiscoteca!: Sequelize.BelongsToGetAssociationMixin<discotecas>;
@@ -84,6 +92,14 @@ export class entradas extends Model<entradasAttributes, entradasCreationAttribut
     creado_en: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    id_cliente: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'clientes',
+        key: 'id'
+      }
     }
   }, {
     sequelize,

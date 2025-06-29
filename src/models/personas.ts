@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { clientes, clientesId } from './clientes';
-import type { personal_discotecas, personal_discotecasId } from './personal_discotecas';
+import type { personal, personalId } from './personal';
 
 export interface personasAttributes {
   id: number;
@@ -47,18 +47,18 @@ export class personas extends Model<personasAttributes, personasCreationAttribut
   hasCliente!: Sequelize.HasManyHasAssociationMixin<clientes, clientesId>;
   hasClientes!: Sequelize.HasManyHasAssociationsMixin<clientes, clientesId>;
   countClientes!: Sequelize.HasManyCountAssociationsMixin;
-  // personas hasMany personal_discotecas via persona_id
-  personal_discotecas!: personal_discotecas[];
-  getPersonal_discotecas!: Sequelize.HasManyGetAssociationsMixin<personal_discotecas>;
-  setPersonal_discotecas!: Sequelize.HasManySetAssociationsMixin<personal_discotecas, personal_discotecasId>;
-  addPersonal_discoteca!: Sequelize.HasManyAddAssociationMixin<personal_discotecas, personal_discotecasId>;
-  addPersonal_discotecas!: Sequelize.HasManyAddAssociationsMixin<personal_discotecas, personal_discotecasId>;
-  createPersonal_discoteca!: Sequelize.HasManyCreateAssociationMixin<personal_discotecas>;
-  removePersonal_discoteca!: Sequelize.HasManyRemoveAssociationMixin<personal_discotecas, personal_discotecasId>;
-  removePersonal_discotecas!: Sequelize.HasManyRemoveAssociationsMixin<personal_discotecas, personal_discotecasId>;
-  hasPersonal_discoteca!: Sequelize.HasManyHasAssociationMixin<personal_discotecas, personal_discotecasId>;
-  hasPersonal_discotecas!: Sequelize.HasManyHasAssociationsMixin<personal_discotecas, personal_discotecasId>;
-  countPersonal_discotecas!: Sequelize.HasManyCountAssociationsMixin;
+  // personas hasMany personal via persona_id
+  personals!: personal[];
+  getPersonals!: Sequelize.HasManyGetAssociationsMixin<personal>;
+  setPersonals!: Sequelize.HasManySetAssociationsMixin<personal, personalId>;
+  addPersonal!: Sequelize.HasManyAddAssociationMixin<personal, personalId>;
+  addPersonals!: Sequelize.HasManyAddAssociationsMixin<personal, personalId>;
+  createPersonal!: Sequelize.HasManyCreateAssociationMixin<personal>;
+  removePersonal!: Sequelize.HasManyRemoveAssociationMixin<personal, personalId>;
+  removePersonals!: Sequelize.HasManyRemoveAssociationsMixin<personal, personalId>;
+  hasPersonal!: Sequelize.HasManyHasAssociationMixin<personal, personalId>;
+  hasPersonals!: Sequelize.HasManyHasAssociationsMixin<personal, personalId>;
+  countPersonals!: Sequelize.HasManyCountAssociationsMixin;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof personas {
     return personas.init({
@@ -102,11 +102,13 @@ export class personas extends Model<personasAttributes, personasCreationAttribut
     },
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
     },
     actualizado_en: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
     sequelize,

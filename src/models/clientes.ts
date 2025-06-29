@@ -1,5 +1,6 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
+import type { entradas, entradasId } from './entradas';
 import type { pagos, pagosId } from './pagos';
 import type { personas, personasId } from './personas';
 import type { reservas, reservasId } from './reservas';
@@ -10,12 +11,14 @@ export interface clientesAttributes {
   persona_id: number;
   preferencia?: string;
   fecha_registro?: Date;
-  ultima_reserva?: Date;
+  tipo_cliente?: string;
+  fecha_ultima_actualizacion?: Date;
+  estado?: string;
 }
 
 export type clientesPk = "id";
 export type clientesId = clientes[clientesPk];
-export type clientesOptionalAttributes = "id" | "preferencia" | "fecha_registro" | "ultima_reserva";
+export type clientesOptionalAttributes = "id" | "preferencia" | "fecha_registro" | "tipo_cliente" | "fecha_ultima_actualizacion" | "estado";
 export type clientesCreationAttributes = Optional<clientesAttributes, clientesOptionalAttributes>;
 
 export class clientes extends Model<clientesAttributes, clientesCreationAttributes> implements clientesAttributes {
@@ -23,8 +26,22 @@ export class clientes extends Model<clientesAttributes, clientesCreationAttribut
   persona_id!: number;
   preferencia?: string;
   fecha_registro?: Date;
-  ultima_reserva?: Date;
+  tipo_cliente?: string;
+  fecha_ultima_actualizacion?: Date;
+  estado?: string;
 
+  // clientes hasMany entradas via id_cliente
+  entradas!: entradas[];
+  getEntradas!: Sequelize.HasManyGetAssociationsMixin<entradas>;
+  setEntradas!: Sequelize.HasManySetAssociationsMixin<entradas, entradasId>;
+  addEntrada!: Sequelize.HasManyAddAssociationMixin<entradas, entradasId>;
+  addEntradas!: Sequelize.HasManyAddAssociationsMixin<entradas, entradasId>;
+  createEntrada!: Sequelize.HasManyCreateAssociationMixin<entradas>;
+  removeEntrada!: Sequelize.HasManyRemoveAssociationMixin<entradas, entradasId>;
+  removeEntradas!: Sequelize.HasManyRemoveAssociationsMixin<entradas, entradasId>;
+  hasEntrada!: Sequelize.HasManyHasAssociationMixin<entradas, entradasId>;
+  hasEntradas!: Sequelize.HasManyHasAssociationsMixin<entradas, entradasId>;
+  countEntradas!: Sequelize.HasManyCountAssociationsMixin;
   // clientes hasMany pagos via cliente_id
   pagos!: pagos[];
   getPagos!: Sequelize.HasManyGetAssociationsMixin<pagos>;
@@ -91,8 +108,16 @@ export class clientes extends Model<clientesAttributes, clientesCreationAttribut
       type: DataTypes.DATE,
       allowNull: true
     },
-    ultima_reserva: {
+    tipo_cliente: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    fecha_ultima_actualizacion: {
       type: DataTypes.DATE,
+      allowNull: true
+    },
+    estado: {
+      type: DataTypes.STRING(10),
       allowNull: true
     }
   }, {

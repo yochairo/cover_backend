@@ -25,6 +25,8 @@ import { metodos_pago as _metodos_pago } from "./metodos_pago";
 import type { metodos_pagoAttributes, metodos_pagoCreationAttributes } from "./metodos_pago";
 import { pagos as _pagos } from "./pagos";
 import type { pagosAttributes, pagosCreationAttributes } from "./pagos";
+import { personal as _personal } from "./personal";
+import type { personalAttributes, personalCreationAttributes } from "./personal";
 import { personal_discotecas as _personal_discotecas } from "./personal_discotecas";
 import type { personal_discotecasAttributes, personal_discotecasCreationAttributes } from "./personal_discotecas";
 import { personas as _personas } from "./personas";
@@ -50,6 +52,7 @@ export {
   _mesas as mesas,
   _metodos_pago as metodos_pago,
   _pagos as pagos,
+  _personal as personal,
   _personal_discotecas as personal_discotecas,
   _personas as personas,
   _promociones as promociones,
@@ -84,6 +87,8 @@ export type {
   metodos_pagoCreationAttributes,
   pagosAttributes,
   pagosCreationAttributes,
+  personalAttributes,
+  personalCreationAttributes,
   personal_discotecasAttributes,
   personal_discotecasCreationAttributes,
   personasAttributes,
@@ -110,6 +115,7 @@ export function initModels(sequelize: Sequelize) {
   const mesas = _mesas.initModel(sequelize);
   const metodos_pago = _metodos_pago.initModel(sequelize);
   const pagos = _pagos.initModel(sequelize);
+  const personal = _personal.initModel(sequelize);
   const personal_discotecas = _personal_discotecas.initModel(sequelize);
   const personas = _personas.initModel(sequelize);
   const promociones = _promociones.initModel(sequelize);
@@ -120,6 +126,8 @@ export function initModels(sequelize: Sequelize) {
   categorias_entradas.hasMany(entradas, { as: "entradas", foreignKey: "categoria_id"});
   mesas.belongsTo(categorias_mesas, { as: "categorium", foreignKey: "categoria_id"});
   categorias_mesas.hasMany(mesas, { as: "mesas", foreignKey: "categoria_id"});
+  entradas.belongsTo(clientes, { as: "id_cliente_cliente", foreignKey: "id_cliente"});
+  clientes.hasMany(entradas, { as: "entradas", foreignKey: "id_cliente"});
   pagos.belongsTo(clientes, { as: "cliente", foreignKey: "cliente_id"});
   clientes.hasMany(pagos, { as: "pagos", foreignKey: "cliente_id"});
   reservas.belongsTo(clientes, { as: "cliente_organizador", foreignKey: "cliente_organizador_id"});
@@ -142,10 +150,12 @@ export function initModels(sequelize: Sequelize) {
   mesas.hasMany(reservas, { as: "reservas", foreignKey: "mesa_id"});
   pagos.belongsTo(metodos_pago, { as: "metodo_pago", foreignKey: "metodo_pago_id"});
   metodos_pago.hasMany(pagos, { as: "pagos", foreignKey: "metodo_pago_id"});
+  personal_discotecas.belongsTo(personal, { as: "personal", foreignKey: "personal_id"});
+  personal.hasMany(personal_discotecas, { as: "personal_discotecas", foreignKey: "personal_id"});
   clientes.belongsTo(personas, { as: "persona", foreignKey: "persona_id"});
   personas.hasMany(clientes, { as: "clientes", foreignKey: "persona_id"});
-  personal_discotecas.belongsTo(personas, { as: "persona", foreignKey: "persona_id"});
-  personas.hasMany(personal_discotecas, { as: "personal_discotecas", foreignKey: "persona_id"});
+  personal.belongsTo(personas, { as: "persona", foreignKey: "persona_id"});
+  personas.hasMany(personal, { as: "personals", foreignKey: "persona_id"});
   reservas.belongsTo(promociones, { as: "promocion", foreignKey: "promocion_id"});
   promociones.hasMany(reservas, { as: "reservas", foreignKey: "promocion_id"});
   detalles_reserva.belongsTo(reservas, { as: "reserva", foreignKey: "reserva_id"});
@@ -169,6 +179,7 @@ export function initModels(sequelize: Sequelize) {
     mesas: mesas,
     metodos_pago: metodos_pago,
     pagos: pagos,
+    personal: personal,
     personal_discotecas: personal_discotecas,
     personas: personas,
     promociones: promociones,

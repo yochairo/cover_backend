@@ -1,11 +1,11 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { discotecas, discotecasId } from './discotecas';
-import type { personas, personasId } from './personas';
+import type { personal, personalId } from './personal';
 
 export interface personal_discotecasAttributes {
   id: number;
-  persona_id: number;
+  personal_id: number;
   discoteca_id: number;
   rol_personal: string;
   creado_en?: Date;
@@ -18,7 +18,7 @@ export type personal_discotecasCreationAttributes = Optional<personal_discotecas
 
 export class personal_discotecas extends Model<personal_discotecasAttributes, personal_discotecasCreationAttributes> implements personal_discotecasAttributes {
   id!: number;
-  persona_id!: number;
+  personal_id!: number;
   discoteca_id!: number;
   rol_personal!: string;
   creado_en?: Date;
@@ -28,11 +28,11 @@ export class personal_discotecas extends Model<personal_discotecasAttributes, pe
   getDiscoteca!: Sequelize.BelongsToGetAssociationMixin<discotecas>;
   setDiscoteca!: Sequelize.BelongsToSetAssociationMixin<discotecas, discotecasId>;
   createDiscoteca!: Sequelize.BelongsToCreateAssociationMixin<discotecas>;
-  // personal_discotecas belongsTo personas via persona_id
-  persona!: personas;
-  getPersona!: Sequelize.BelongsToGetAssociationMixin<personas>;
-  setPersona!: Sequelize.BelongsToSetAssociationMixin<personas, personasId>;
-  createPersona!: Sequelize.BelongsToCreateAssociationMixin<personas>;
+  // personal_discotecas belongsTo personal via personal_id
+  personal!: personal;
+  getPersonal!: Sequelize.BelongsToGetAssociationMixin<personal>;
+  setPersonal!: Sequelize.BelongsToSetAssociationMixin<personal, personalId>;
+  createPersonal!: Sequelize.BelongsToCreateAssociationMixin<personal>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof personal_discotecas {
     return personal_discotecas.init({
@@ -42,11 +42,11 @@ export class personal_discotecas extends Model<personal_discotecasAttributes, pe
       allowNull: false,
       primaryKey: true
     },
-    persona_id: {
+    personal_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'personas',
+        model: 'personal',
         key: 'id'
       }
     },
