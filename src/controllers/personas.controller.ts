@@ -93,7 +93,7 @@ export const getPersona = async (req:Request,res:Response)=>{
 export const create = async (req:Request, res: Response) => {
   try {
     const persona = await personaService.createPersona(req.body);
-    res.json(persona);
+    res.status(201).json(persona);
   } catch (error) {
     res.status(404).json({ message: "Error al crear persona",error });
 
@@ -103,7 +103,7 @@ export const create = async (req:Request, res: Response) => {
 export const updatePersonaBasico = async (req: Request, res: Response) => {
   try {
     const persona = await personaService.updatePersonaBasico(Number(req.params.id), req.body);
-    res.json(persona);
+    res.status(200).json(persona);
   } catch (error) {
     res.status(403).json({ message: "No autorizado para editar completamente", error });
   }

@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { sequelize } from './config/db'; 
 import personaRoutes from './routes/personas.routes'; 
+import clienteRoutes from './routes/clientes.routes'; 
+import eventosRoutes from './routes/eventos.routes';
  
 dotenv.config();
 
@@ -18,6 +20,8 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/persona', personaRoutes);
+app.use('/cliente', clienteRoutes);
+app.use('/eventos', eventosRoutes);
 
 
 const PORT = parseInt(process.env.PORT || '3000', 10);

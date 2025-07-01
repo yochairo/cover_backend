@@ -4,6 +4,7 @@ import { verifyAuth } from "../middlewares/auth.middleware";
 
 const router = Router();
 
+
 router.post("/registerCliente", personasController.registerCliente);
 router.post("/loginCliente", personasController.loginCliente);
 
