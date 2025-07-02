@@ -11,9 +11,9 @@ export const registerCliente = async (
     telefono: string,
     carnet: string) => {
 
-
+    try {
         const existingCliente = await db.personas.findOne({
-            where: {correo: correo.toLowerCase().trim(),rol: 'cliente'}
+            where: { correo: correo.toLowerCase().trim(), rol: 'cliente' }
         })
         if (existingCliente) {
             throw new Error("El correo ya esta registrado");
@@ -21,36 +21,61 @@ export const registerCliente = async (
 
 
         const existingUsername = await db.personas.findOne({
-            where: {nombre_usuario: nombre_usuario}
+            where: {  nombre_usuario }
         })
         if (existingUsername) {
             throw new Error("El nombre de usuario ya esta registrado");
-            
         }
-    const hashedConstrasena = bcrypt.hashSync(contrasena, 10);
-    const newPersonaCliente = await db.personas.create({
-        nombre_usuario,
-        correo,
-        contrasena: hashedConstrasena,
-        nombre_completo,
-        telefono,
-        carnet,
-        rol: 'cliente',
-        estado: 'activo'
-    });
-    const token = generateToken(newPersonaCliente.id, 'cliente');
-    return { persona: newPersonaCliente, token };
+
+        const hashedConstrasena = bcrypt.hashSync(contrasena, 12);
+
+        const newPersonaCliente = await db.personas.create({
+            nombre_usuario,
+            correo,
+            contrasena: hashedConstrasena,
+            nombre_completo,
+            telefono,
+            carnet,
+            rol: 'cliente',
+            estado: 'activo'
+        });
+        const token = generateToken(newPersonaCliente.id, 'cliente');
+        return { persona: newPersonaCliente, token };
+    } catch (error) {
+        throw error;
+    }
+
 };
 
 
 export const loginCliente = async (correo: string, contrasena: string) => {
-    const personaCliente = await db.personas.findOne({ where: { correo, rol: 'cliente' } });
-    if (!personaCliente) throw new Error('Cliente no encontrado');
 
-    if (!compareContrasenas(contrasena, String(personaCliente.contrasena))) throw new Error('Constraseña incorrecta');
+    try {
+        if (!correo || !contrasena) {
+            throw new Error("Correo y contraseña son obligatorios");
+        }
 
-    const token = generateToken(personaCliente.id, 'cliente');
-    return { persona: personaCliente, token };
+        const personaCliente = await db.personas.findOne({
+            where: { correo, rol: 'cliente', estado: 'activo' }
+        });
+
+        if (!personaCliente) {
+            throw new Error('Cliente no encontrado');
+        }
+
+        if (!compareContrasenas(contrasena, String(personaCliente.contrasena))) {
+            throw new Error('Constraseña incorrecta');
+        }
+
+        const token = generateToken(personaCliente.id, 'cliente');
+        const { contrasena: _, ...personaSinPassword } = personaCliente.toJSON();
+
+        return { persona: personaSinPassword, token };
+
+    } catch (error) {
+        throw error;
+
+    }
 }
 
 
@@ -145,26 +170,26 @@ export const createPersona = async (data: any) => {
 
 
 export const updatePersonaBasico = async (id: number, data: any) => {
-  const persona = await db.personas.findByPk(id);
+    const persona = await db.personas.findByPk(id);
 
-  if (!persona) {
-    throw new Error("Persona no encontrada");
-  }
-
-  // Solo campos básicos permitidos
-  const allowedFields = ['nombre_completo', 'correo', 'nombre_usuario', 'telefono'];
-  const updateData: any = {};
-  
-  allowedFields.forEach(field => {
-    if (data[field] !== undefined) {
-      updateData[field] = field === 'correo' ? data[field].toLowerCase().trim() : data[field];
+    if (!persona) {
+        throw new Error("Persona no encontrada");
     }
-  });
 
-  await persona.update(updateData);
-  
-  const { contrasena: _, ...personaSinPassword } = persona.toJSON();
-  return personaSinPassword;
+    // Solo campos básicos permitidos
+    const allowedFields = ['nombre_completo', 'correo', 'nombre_usuario', 'telefono'];
+    const updateData: any = {};
+
+    allowedFields.forEach(field => {
+        if (data[field] !== undefined) {
+            updateData[field] = field === 'correo' ? data[field].toLowerCase().trim() : data[field];
+        }
+    });
+
+    await persona.update(updateData);
+
+    const { contrasena: _, ...personaSinPassword } = persona.toJSON();
+    return personaSinPassword;
 };
 
 export const updatePersonaAdmin = async (id: number, data: any) => {

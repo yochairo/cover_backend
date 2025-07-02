@@ -4,7 +4,7 @@ import * as eventoService from '../services/eventos.service';
 export const crearEvento = async (req: Request, res: Response) => {
   try {
     const evento = await eventoService.crearEvento(req.body);
-     res.status(201).json(evento);
+    res.status(201).json(evento);
   } catch (error) {
     console.error('Error al crear evento:', error);
     res.status(500).json({ message: error instanceof Error ? error.message : 'Error interno del servidor' });
@@ -16,7 +16,7 @@ export const obtenerEventos = async (req: Request, res: Response) => {
     res.status(200).json(eventos);
   } catch (error) {
     console.error('Error al obtener eventos:', error);
-    res.status(500).json({message: error instanceof Error ? error.message : 'Error interno del servidor' });
+    res.status(500).json({ message: error instanceof Error ? error.message : 'Error interno del servidor' });
   }
 };
 
@@ -31,14 +31,14 @@ export const obtenerEventoPorId = async (req: Request, res: Response) => {
 };
 
 export const actualizarEvento = async (req: Request, res: Response) => {
-  try {  
+  try {
     const eventoId = Number(req.params.id);
     const updatedEvento = await eventoService.actualizarEvento(eventoId, req.body);
-    res.status(200).json(updatedEvento);   
+    res.status(200).json(updatedEvento);
   } catch (error) {
-    console.error('Error al actualizar evento:', error);  
+    console.error('Error al actualizar evento:', error);
     res.status(500).json({ message: error instanceof Error ? error.message : 'Error interno del servidor' });
-    }
+  }
 };
 
 export const eliminarEvento = async (req: Request, res: Response) => {
@@ -56,11 +56,11 @@ export const obtenerEventosPorDiscoteca = async (req: Request<{ discoteca_id: st
     const discotecaId = parseInt(req.params.discoteca_id); // 👈 CONVERSIÓN
 
     if (isNaN(discotecaId)) {
-      return res.status(400).json({ message: 'ID de discoteca inválido' });
+      res.status(400).json({ message: 'ID de discoteca inválido' });
+    } else {
+      const eventos = await eventoService.obtenerEventosPorDiscoteca(discotecaId);
+      res.status(200).json(eventos);
     }
-
-    const eventos = await eventoService.obtenerEventosPorDiscoteca(discotecaId);
-    res.status(200).json(eventos);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
