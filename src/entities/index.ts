@@ -1,0 +1,20 @@
+// Exportar todas las entidades desde un solo archivo
+export { Persona } from './persona.entity';
+export { Cliente } from './cliente.entity';
+export { Personal } from './personal.entity';
+export { PersonalDiscoteca } from './personal-discoteca.entity';
+export { Discoteca } from './discoteca.entity';
+export { Evento } from './evento.entity';
+export { Mesa } from './mesa.entity';
+export { CategoriaMesa } from './categoria-mesa.entity';
+export { Entrada } from './entrada.entity';
+export { CategoriaEntrada } from './categoria-entrada.entity';
+export { Promocion } from './promocion.entity';
+export { Reserva } from './reserva.entity';
+export { DetalleReserva } from './detalle-reserva.entity';
+export { ReservaCliente } from './reserva-cliente.entity';
+export { MetodoPago } from './metodo-pago.entity';
+export { Pago } from './pago.entity';
+export { Anuncio } from './anuncio.entity';
+export { AuditoriaPago } from './auditoria-pago.entity';
+export { AuditoriaReserva } from './auditoria-reserva.entity';
