@@ -10,8 +10,11 @@ export const getDatabaseConfig = (
   username: configService.get('DB_USERNAME'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_DATABASE'),
+  schema: configService.get('DB_SCHEMA', 'public'), // Esquema configurable
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: false, // En producción SIEMPRE false
-  logging: false,
-  ssl: false,
+  logging: true, // Activado para debug
+  ssl: {
+    rejectUnauthorized: false, // Necesario para Supabase
+  },
 });
