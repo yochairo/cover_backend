@@ -15,13 +15,16 @@ import { DiscotecasService } from './discotecas.service';
 import { CreateDiscotecaDto } from './dto/create-discoteca.dto';
 import { UpdateDiscotecaDto } from './dto/update-discoteca.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('discotecas')
 export class DiscotecasController {
   constructor(private readonly discotecasService: DiscotecasService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('personal')
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDiscotecaDto: CreateDiscotecaDto) {
     const discoteca = await this.discotecasService.create(createDiscotecaDto);
@@ -73,7 +76,8 @@ export class DiscotecasController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('personal')
   async update(
     @Param('id') id: string,
     @Body() updateDiscotecaDto: UpdateDiscotecaDto,
@@ -90,7 +94,8 @@ export class DiscotecasController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('personal')
   async remove(@Param('id') id: string) {
     const resultado = await this.discotecasService.remove(+id);
     return {
