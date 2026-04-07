@@ -8,6 +8,7 @@ import {
 import { Discoteca } from './discoteca.entity';
 import { CategoriaEntrada } from './categoria-entrada.entity';
 import { Cliente } from './cliente.entity';
+import { Evento } from './evento.entity';
 
 @Entity('entradas')
 export class Entrada {
@@ -42,6 +43,19 @@ export class Entrada {
 
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
+
+  @Column({ name: 'evento_id', type: 'integer', nullable: true })
+  evento_id: number;
+
+  @ManyToOne(() => Evento, { nullable: true })
+  @JoinColumn({ name: 'evento_id' })
+  evento: Evento;
+
+  @Column({ type: 'integer', nullable: true })
+  cantidad_total: number;
+
+  @Column({ type: 'integer', default: 0, nullable: true })
+  cantidad_vendida: number;
 
   // Relación adicional que vi en los modelos de Sequelize
   @ManyToOne(() => Cliente, (cliente) => cliente.entradas, { nullable: true })

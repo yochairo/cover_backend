@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Cliente } from './cliente.entity';
 import { Personal } from './personal.entity';
+import { VerificacionIdentidad } from './verificacion-identidad.entity';
 
 @Entity('personas')
 export class Persona {
@@ -21,7 +23,7 @@ export class Persona {
   correo: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  contrasena: string;
+  contrasena_hash: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   nombre_completo: string;
@@ -44,9 +46,24 @@ export class Persona {
   @Column({ type: 'timestamp', nullable: true })
   actualizado_en: Date;
 
+  @Column({ type: 'date', nullable: true })
+  fecha_nacimiento: Date;
+
+  @Column({ type: 'text', nullable: true })
+  foto_perfil_url: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  ultimo_login: Date;
+
   @OneToMany(() => Cliente, (cliente) => cliente.persona)
   clientes: Cliente[];
 
   @OneToMany(() => Personal, (personal) => personal.persona)
   personals: Personal[];
+
+  @OneToOne(
+    () => VerificacionIdentidad,
+    (verificacion) => verificacion.persona,
+  )
+  verificacion: VerificacionIdentidad;
 }

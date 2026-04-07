@@ -50,7 +50,7 @@ export class PersonasService {
     const newPersona = this.personaRepository.create({
       nombre_usuario: dto.nombre_usuario,
       correo: dto.correo.toLowerCase().trim(),
-      contrasena: hashedPassword,
+      contrasena_hash: hashedPassword,
       nombre_completo: dto.nombre_completo,
       telefono: dto.telefono,
       carnet: dto.carnet,
@@ -74,7 +74,7 @@ export class PersonasService {
     const token = this.authService.generateToken(savedPersona.id, 'cliente');
 
     // Eliminar contraseña antes de retornar
-    const { contrasena, ...personaSinPassword } = savedPersona;
+    const { contrasena_hash, ...personaSinPassword } = savedPersona;
 
     return { persona: personaSinPassword, token };
   }
@@ -94,7 +94,7 @@ export class PersonasService {
 
     const isPasswordValid = await this.authService.comparePasswords(
       dto.contrasena,
-      persona.contrasena,
+      persona.contrasena_hash,
     );
 
     if (!isPasswordValid) {
@@ -103,7 +103,7 @@ export class PersonasService {
 
     const token = this.authService.generateToken(persona.id, 'cliente');
 
-    const { contrasena, ...personaSinPassword } = persona;
+    const { contrasena_hash, ...personaSinPassword } = persona;
 
     return { persona: personaSinPassword, token };
   }
@@ -136,7 +136,7 @@ export class PersonasService {
     const newPersona = this.personaRepository.create({
       nombre_usuario: dto.nombre_usuario,
       correo: dto.correo.toLowerCase().trim(),
-      contrasena: hashedPassword,
+      contrasena_hash: hashedPassword,
       nombre_completo: dto.nombre_completo,
       telefono: dto.telefono,
       carnet: dto.carnet,
@@ -152,7 +152,7 @@ export class PersonasService {
     const token = this.authService.generateToken(savedPersona.id, 'personal');
 
     // Eliminar contraseña antes de retornar
-    const { contrasena, ...personaSinPassword } = savedPersona;
+    const { contrasena_hash, ...personaSinPassword } = savedPersona;
 
     return { persona: personaSinPassword, token };
   }
@@ -168,7 +168,7 @@ export class PersonasService {
 
     const isPasswordValid = await this.authService.comparePasswords(
       dto.contrasena,
-      persona.contrasena,
+      persona.contrasena_hash,
     );
 
     if (!isPasswordValid) {
@@ -177,7 +177,7 @@ export class PersonasService {
 
     const token = this.authService.generateToken(persona.id, 'personal');
 
-    const { contrasena, ...personaSinPassword } = persona;
+    const { contrasena_hash, ...personaSinPassword } = persona;
 
     return { persona: personaSinPassword, token };
   }
@@ -193,7 +193,7 @@ export class PersonasService {
       throw new NotFoundException('Persona no encontrada');
     }
 
-    const { contrasena, ...personaSinPassword } = persona;
+    const { contrasena_hash, ...personaSinPassword } = persona;
     return personaSinPassword;
   }
 }

@@ -9,6 +9,7 @@ import {
 import { Discoteca } from './discoteca.entity';
 import { CategoriaMesa } from './categoria-mesa.entity';
 import { Reserva } from './reserva.entity';
+import { ZonaDiscoteca } from './zona-discoteca.entity';
 
 @Entity('mesas')
 export class Mesa {
@@ -43,6 +44,34 @@ export class Mesa {
 
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
+
+  @Column({ name: 'zona_id', type: 'integer', nullable: true })
+  zona_id: number;
+
+  @ManyToOne(() => ZonaDiscoteca, (zona) => zona.mesas, { nullable: true })
+  @JoinColumn({ name: 'zona_id' })
+  zona: ZonaDiscoteca;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  pos_x: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  pos_y: number;
+
+  @Column({ type: 'varchar', default: 'circular', nullable: true })
+  forma: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  ancho: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  alto: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precio_reserva: number;
+
+  @Column({ type: 'boolean', default: true })
+  activa: boolean;
 
   @OneToMany(() => Reserva, (reserva) => reserva.mesa)
   reservas: Reserva[];

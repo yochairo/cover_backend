@@ -39,4 +39,7 @@ export class Anuncio {
 
   @Column({ type: 'timestamp', nullable: true })
   actualizado_en: Date;
+
+  @Column({ type: 'text', nullable: true })
+  imagen_url: string;
 }

@@ -46,4 +46,28 @@ export class Pago {
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   referencia_pago: string;
+
+  @Column({ type: 'integer', nullable: true })
+  pedido_id: number;
+
+  @Column({ type: 'varchar', default: 'BOB', nullable: true })
+  moneda: string;
+
+  @Column({ type: 'text', nullable: true })
+  qr_code_data: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  qr_expiracion: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  banco_origen: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  numero_transaccion: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  creado_en: Date;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  actualizado_en: Date;
 }

@@ -10,6 +10,11 @@ import { Entrada } from './entrada.entity';
 import { Promocion } from './promocion.entity';
 import { Anuncio } from './anuncio.entity';
 import { PersonalDiscoteca } from './personal-discoteca.entity';
+import { CategoriaMenu } from './categoria-menu.entity';
+import { ItemMenu } from './item-menu.entity';
+import { FotoDiscoteca } from './foto-discoteca.entity';
+import { HorarioDiscoteca } from './horario-discoteca.entity';
+import { ZonaDiscoteca } from './zona-discoteca.entity';
 
 @Entity('discotecas')
 export class Discoteca {
@@ -43,6 +48,51 @@ export class Discoteca {
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  actualizado_en: Date;
+
+  @Column({ type: 'varchar', default: 'bar', nullable: true })
+  tipo: string;
+
+  @Column({ type: 'text', nullable: true })
+  descripcion: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  zona_barrio: string;
+
+  @Column({ type: 'varchar', default: 'La Paz', nullable: true })
+  ciudad: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  referencia: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitud: number;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitud: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precio_minimo_mesa: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precio_mesa_vip: number;
+
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0, nullable: true })
+  rating_promedio: number;
+
+  @Column({ type: 'integer', default: 0, nullable: true })
+  total_resenas: number;
+
+  @Column({ type: 'text', nullable: true })
+  logo_url: string;
+
+  @Column({ type: 'boolean', default: false })
+  verificado: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fecha_verificacion: Date;
+
   @OneToMany(() => Evento, (evento) => evento.discoteca)
   eventos: Evento[];
 
@@ -63,4 +113,19 @@ export class Discoteca {
     (personalDiscoteca) => personalDiscoteca.discoteca,
   )
   personal_discotecas: PersonalDiscoteca[];
+
+  @OneToMany(() => CategoriaMenu, (categoriaMenu) => categoriaMenu.discoteca)
+  categorias_menu: CategoriaMenu[];
+
+  @OneToMany(() => ItemMenu, (itemMenu) => itemMenu.discoteca)
+  items_menu: ItemMenu[];
+
+  @OneToMany(() => FotoDiscoteca, (foto) => foto.discoteca)
+  fotos: FotoDiscoteca[];
+
+  @OneToMany(() => HorarioDiscoteca, (horario) => horario.discoteca)
+  horarios: HorarioDiscoteca[];
+
+  @OneToMany(() => ZonaDiscoteca, (zona) => zona.discoteca)
+  zonas: ZonaDiscoteca[];
 }

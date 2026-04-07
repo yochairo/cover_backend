@@ -13,6 +13,7 @@ import { Promocion } from './promocion.entity';
 import { Pago } from './pago.entity';
 import { ReservaCliente } from './reserva-cliente.entity';
 import { DetalleReserva } from './detalle-reserva.entity';
+import { InvitacionMesa } from './invitacion-mesa.entity';
 
 @Entity('reservas')
 export class Reserva {
@@ -57,6 +58,36 @@ export class Reserva {
   @Column({ type: 'timestamp', nullable: true })
   actualizado_en: Date;
 
+  @Column({ type: 'integer', nullable: true })
+  cupon_id: number;
+
+  @Column({ type: 'time', nullable: true })
+  hora_reserva: string;
+
+  @Column({ type: 'integer', default: 1, nullable: true })
+  num_personas: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  codigo_qr: string;
+
+  @Column({ type: 'text', nullable: true })
+  codigo_qr_url: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, nullable: true })
+  descuento_aplicado: number;
+
+  @Column({ type: 'text', nullable: true })
+  notas: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  confirmada_en: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  cancelada_en: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  completada_en: Date;
+
   @OneToMany(() => Pago, (pago) => pago.reserva)
   pagos: Pago[];
 
@@ -65,4 +96,7 @@ export class Reserva {
 
   @OneToOne(() => DetalleReserva, (detalle) => detalle.reserva)
   detalle: DetalleReserva;
+
+  @OneToMany(() => InvitacionMesa, (invitacion) => invitacion.reserva)
+  invitaciones: InvitacionMesa[];
 }

@@ -29,4 +29,7 @@ export class ReservaCliente {
 
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
+
+  @Column({ type: 'boolean', default: false })
+  es_organizador: boolean;
 }

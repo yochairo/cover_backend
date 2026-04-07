@@ -23,6 +23,12 @@ export class MetodoPago {
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
 
+  @Column({ type: 'varchar', nullable: true })
+  tipo: string;
+
+  @Column({ type: 'text', nullable: true })
+  icono_url: string;
+
   @OneToMany(() => Pago, (pago) => pago.metodo_pago)
   pagos: Pago[];
 }

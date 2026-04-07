@@ -33,6 +33,9 @@ export class Cliente {
   @Column({ type: 'timestamp', name: 'ultima_reserva', nullable: true })
   ultima_reserva: Date;
 
+  @Column({ type: 'boolean', default: false })
+  verificado: boolean;
+
   @OneToMany(() => Entrada, (entrada) => entrada.cliente)
   entradas: Entrada[];
 

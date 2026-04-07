@@ -21,4 +21,10 @@ export class DetalleReserva {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   nota: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  ocasion: string;
+
+  @Column({ type: 'text', nullable: true })
+  motivo: string;
 }

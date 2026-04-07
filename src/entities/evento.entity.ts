@@ -42,4 +42,10 @@ export class Evento {
 
   @Column({ type: 'timestamp', nullable: true })
   actualizado_en: Date;
+
+  @Column({ type: 'text', nullable: true })
+  imagen_url: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precio_entrada: number;
 }

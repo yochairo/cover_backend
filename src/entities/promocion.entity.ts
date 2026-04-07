@@ -45,6 +45,15 @@ export class Promocion {
   @Column({ type: 'timestamp', nullable: true })
   creado_en: Date;
 
+  @Column({ type: 'varchar', default: 'porcentaje', nullable: true })
+  tipo_descuento: string;
+
+  @Column({ type: 'integer', nullable: true })
+  uso_maximo: number;
+
+  @Column({ type: 'integer', default: 0, nullable: true })
+  usos_actuales: number;
+
   @OneToMany(() => Reserva, (reserva) => reserva.promocion)
   reservas: Reserva[];
 }
