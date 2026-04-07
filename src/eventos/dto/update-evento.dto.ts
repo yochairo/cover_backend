@@ -1,24 +1,37 @@
-import { IsString, IsInt, IsDate, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsDate,
+  IsOptional,
+  IsBoolean,
+  IsUrl,
+  IsNumber,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateEventoDto {
+  @IsOptional()
   @IsString()
-  nombre: string;
+  nombre?: string;
 
   @IsOptional()
   @IsString()
   descripcion?: string;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  fecha_hora_inicio: Date;
+  fecha_hora_inicio?: Date;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  fecha_hora_fin: Date;
+  fecha_hora_fin?: Date;
 
+  @IsOptional()
   @IsInt()
-  discoteca_id: number;
+  discoteca_id?: number;
 
   @IsOptional()
   @IsString()
@@ -43,4 +56,14 @@ export class UpdateEventoDto {
   @IsOptional()
   @IsString()
   estado?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  imagen_url?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  precio_entrada?: number;
 }

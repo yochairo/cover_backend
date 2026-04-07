@@ -1,4 +1,13 @@
-import { IsString, IsInt, IsDate, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsDate,
+  IsOptional,
+  IsBoolean,
+  IsUrl,
+  IsNumber,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateEventoDto {
@@ -43,4 +52,14 @@ export class CreateEventoDto {
   @IsOptional()
   @IsString()
   estado?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  imagen_url?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  precio_entrada?: number;
 }

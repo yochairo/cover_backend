@@ -82,6 +82,18 @@ export class DiscotecasService {
           direccion: ILike(`%${termino}%`),
           estado: Not('eliminado'),
         },
+        {
+          zona_barrio: ILike(`%${termino}%`),
+          estado: Not('eliminado'),
+        },
+        {
+          ciudad: ILike(`%${termino}%`),
+          estado: Not('eliminado'),
+        },
+        {
+          tipo: ILike(`%${termino}%`),
+          estado: Not('eliminado'),
+        },
       ],
       order: { nombre: 'ASC' },
     });
@@ -142,6 +154,44 @@ export class DiscotecasService {
     if (updateDiscotecaDto.estado !== undefined) {
       updateData.estado = updateDiscotecaDto.estado;
     }
+    if (updateDiscotecaDto.tipo !== undefined) {
+      updateData.tipo = updateDiscotecaDto.tipo;
+    }
+    if (updateDiscotecaDto.descripcion !== undefined) {
+      updateData.descripcion = updateDiscotecaDto.descripcion;
+    }
+    if (updateDiscotecaDto.zona_barrio !== undefined) {
+      updateData.zona_barrio = updateDiscotecaDto.zona_barrio;
+    }
+    if (updateDiscotecaDto.ciudad !== undefined) {
+      updateData.ciudad = updateDiscotecaDto.ciudad;
+    }
+    if (updateDiscotecaDto.referencia !== undefined) {
+      updateData.referencia = updateDiscotecaDto.referencia;
+    }
+    if (updateDiscotecaDto.latitud !== undefined) {
+      updateData.latitud = updateDiscotecaDto.latitud;
+    }
+    if (updateDiscotecaDto.longitud !== undefined) {
+      updateData.longitud = updateDiscotecaDto.longitud;
+    }
+    if (updateDiscotecaDto.precio_minimo_mesa !== undefined) {
+      updateData.precio_minimo_mesa = updateDiscotecaDto.precio_minimo_mesa;
+    }
+    if (updateDiscotecaDto.precio_mesa_vip !== undefined) {
+      updateData.precio_mesa_vip = updateDiscotecaDto.precio_mesa_vip;
+    }
+    if (updateDiscotecaDto.logo_url !== undefined) {
+      updateData.logo_url = updateDiscotecaDto.logo_url;
+    }
+    if (updateDiscotecaDto.verificado !== undefined) {
+      updateData.verificado = updateDiscotecaDto.verificado;
+      if (updateDiscotecaDto.verificado) {
+        updateData.fecha_verificacion = new Date();
+      }
+    }
+
+    updateData.actualizado_en = new Date();
 
     await this.discotecaRepository.update(id, updateData);
 

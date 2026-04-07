@@ -4,10 +4,11 @@ import { PersonasController } from './personas.controller';
 import { PersonasService } from './personas.service';
 import { Persona } from '../entities/persona.entity';
 import { Cliente } from '../entities/cliente.entity';
+import { Personal } from '../entities/personal.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Persona, Cliente]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Persona, Cliente, Personal]), AuthModule],
   controllers: [PersonasController],
   providers: [PersonasService],
   exports: [PersonasService],

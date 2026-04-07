@@ -1,4 +1,12 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsDateString,
+  IsUrl,
+} from 'class-validator';
 
 export class RegisterClienteDto {
   @IsString()
@@ -24,4 +32,13 @@ export class RegisterClienteDto {
   @IsString()
   @IsOptional()
   carnet?: string;
+
+  @IsDateString()
+  @IsOptional()
+  fecha_nacimiento?: string;
+
+  @IsString()
+  @IsUrl()
+  @IsOptional()
+  foto_perfil_url?: string;
 }
