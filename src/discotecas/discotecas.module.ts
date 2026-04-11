@@ -3,10 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DiscotecasController } from './discotecas.controller';
 import { DiscotecasService } from './discotecas.service';
 import { Discoteca } from '../entities/discoteca.entity';
+import { Personal } from '../entities/personal.entity';
+import { PersonalDiscoteca } from '../entities/personal-discoteca.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Discoteca]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Discoteca, Personal, PersonalDiscoteca]), AuthModule],
   controllers: [DiscotecasController],
   providers: [DiscotecasService],
   exports: [DiscotecasService],

@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { DiscotecasService } from './discotecas.service';
 import { CreateDiscotecaDto } from './dto/create-discoteca.dto';
@@ -26,11 +27,21 @@ export class DiscotecasController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('personal')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createDiscotecaDto: CreateDiscotecaDto) {
-    const discoteca = await this.discotecasService.create(createDiscotecaDto);
+  async create(@Body() createDiscotecaDto: CreateDiscotecaDto, @Request() req) {
+    const discoteca = await this.discotecasService.create(createDiscotecaDto, req.user?.userId);
     return {
       success: true,
       message: 'Discoteca creada exitosamente',
+      data: discoteca,
+    };
+  }
+
+  @Get('mi-discoteca')
+  @UseGuards(JwtAuthGuard)
+  async getMiDiscoteca(@Request() req) {
+    const discoteca = await this.discotecasService.findMiDiscoteca(req.user.userId);
+    return {
+      success: true,
       data: discoteca,
     };
   }

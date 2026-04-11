@@ -2,11 +2,12 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, ILike } from 'typeorm';
 import { Discoteca } from '../entities/discoteca.entity';
+import { Personal } from '../entities/personal.entity';
+import { PersonalDiscoteca } from '../entities/personal-discoteca.entity';
 import { CreateDiscotecaDto } from './dto/create-discoteca.dto';
 import { UpdateDiscotecaDto } from './dto/update-discoteca.dto';
 
@@ -15,9 +16,13 @@ export class DiscotecasService {
   constructor(
     @InjectRepository(Discoteca)
     private discotecaRepository: Repository<Discoteca>,
+    @InjectRepository(Personal)
+    private personalRepository: Repository<Personal>,
+    @InjectRepository(PersonalDiscoteca)
+    private personalDiscotecaRepository: Repository<PersonalDiscoteca>,
   ) {}
 
-  async create(createDiscotecaDto: CreateDiscotecaDto) {
+  async create(createDiscotecaDto: CreateDiscotecaDto, personaId?: number) {
     // Verificar si ya existe una discoteca con ese nombre
     const existingDiscoteca = await this.discotecaRepository.findOne({
       where: {
@@ -34,14 +39,44 @@ export class DiscotecasService {
     const nuevaDiscoteca = this.discotecaRepository.create({
       ...createDiscotecaDto,
       nombre: createDiscotecaDto.nombre.trim(),
-      correo_contacto: createDiscotecaDto.correo_contacto
-        ?.toLowerCase()
-        .trim(),
+      correo_contacto: createDiscotecaDto.correo_contacto?.toLowerCase().trim(),
       estado: 'activo',
       creado_en: new Date(),
     });
 
-    return await this.discotecaRepository.save(nuevaDiscoteca);
+    const discotecaGuardada = await this.discotecaRepository.save(nuevaDiscoteca);
+
+    // Vincular al propietario si se pasó personaId
+    if (personaId) {
+      const personal = await this.personalRepository.findOne({
+        where: { persona_id: personaId },
+      });
+      if (personal) {
+        await this.personalDiscotecaRepository.save({
+          personal_id: personal.id,
+          discoteca_id: discotecaGuardada.id,
+          rol_personal: 'propietario',
+          creado_en: new Date(),
+        });
+      }
+    }
+
+    return discotecaGuardada;
+  }
+
+  async findMiDiscoteca(personaId: number): Promise<Discoteca | null> {
+    const personal = await this.personalRepository.findOne({
+      where: { persona_id: personaId },
+    });
+    if (!personal) return null;
+
+    const personalDiscoteca = await this.personalDiscotecaRepository.findOne({
+      where: { personal_id: personal.id },
+      relations: ['discoteca'],
+      order: { creado_en: 'ASC' },
+    });
+
+    return personalDiscoteca?.discoteca || null;
   }
 
   async findAll() {
