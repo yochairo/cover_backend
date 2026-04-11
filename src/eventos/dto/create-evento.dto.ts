@@ -4,7 +4,6 @@ import {
   IsDate,
   IsOptional,
   IsBoolean,
-  IsUrl,
   IsNumber,
   Min,
 } from 'class-validator';
@@ -18,13 +17,15 @@ export class CreateEventoDto {
   @IsString()
   descripcion?: string;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  fecha_hora_inicio: Date;
+  fecha_inicio?: Date;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  fecha_hora_fin: Date;
+  fecha_fin?: Date;
 
   @IsInt()
   discoteca_id: number;
@@ -55,7 +56,6 @@ export class CreateEventoDto {
 
   @IsOptional()
   @IsString()
-  @IsUrl()
   imagen_url?: string;
 
   @IsOptional()

@@ -5,6 +5,7 @@ export const corsConfig: CorsOptions = {
     const allowedOrigins = [
       'http://localhost:3000', // React
       'http://localhost:5173', // Vite React
+      'http://localhost:5174', // Vite React (alt port)
       'http://localhost:4200', // Angular
       'http://localhost:8100', // Ionic
       'capacitor://localhost', // Capacitor
