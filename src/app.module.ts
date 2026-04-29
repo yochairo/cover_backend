@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { PersonasModule } from './personas/personas.module';
 import { DiscotecasModule } from './discotecas/discotecas.module';
 import { EventosModule } from './eventos/eventos.module';
+import { ReservasModule } from './reservas/reservas.module';
+import { MesasModule } from './mesas/mesas.module';
+import { CategoriasMesaModule } from './categorias_mesa/categorias_mesa.module';
 
 // Importar entidades
 import * as entities from './entities';
@@ -28,6 +31,9 @@ import * as entities from './entities';
     PersonasModule,
     DiscotecasModule,
     EventosModule,
+    ReservasModule,
+    MesasModule,
+    CategoriasMesaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
