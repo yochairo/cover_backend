@@ -5,20 +5,29 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { corsConfig } from './config/cors.config';
 import { join } from 'path';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'; // 👈 agregar
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Servir archivos estáticos (imágenes subidas)
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
-
-  // Configurar CORS
   app.enableCors(corsConfig);
 
-  // Seguridad con Helmet
+  // ⚠️ Helmet DESPUÉS de Swagger para que no bloquee la UI
+  // Configurar Swagger 👇
+  const config = new DocumentBuilder()
+    .setTitle('Cover Backend API')
+    .setDescription('Documentación de endpoints')
+    .setVersion('0.0.1')
+    .addBearerAuth() // para los endpoints con JWT
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+  // 👆 hasta aquí
+
   app.use(helmet());
 
-  // Validación global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -31,6 +40,7 @@ async function bootstrap() {
 
   await app.listen(PORT, '0.0.0.0');
   console.log(`🚀 Servidor corriendo en http://0.0.0.0:${PORT}`);
+  console.log(`📄 Swagger en http://localhost:${PORT}/api/docs`); // 👈 agregar
   console.log(`✅ Conectado a la base de datos`);
 }
 bootstrap();
