@@ -8,6 +8,8 @@ import { Repository, Not, ILike } from 'typeorm';
 import { Discoteca } from '../entities/discoteca.entity';
 import { Personal } from '../entities/personal.entity';
 import { PersonalDiscoteca } from '../entities/personal-discoteca.entity';
+import { Mesa } from '../entities/mesa.entity';
+import { CategoriaMesa } from '../entities/categoria-mesa.entity';
 import { CreateDiscotecaDto } from './dto/create-discoteca.dto';
 import { UpdateDiscotecaDto } from './dto/update-discoteca.dto';
 
@@ -20,6 +22,10 @@ export class DiscotecasService {
     private personalRepository: Repository<Personal>,
     @InjectRepository(PersonalDiscoteca)
     private personalDiscotecaRepository: Repository<PersonalDiscoteca>,
+    @InjectRepository(Mesa)
+    private mesaRepository: Repository<Mesa>,
+    @InjectRepository(CategoriaMesa)
+    private categoriaMesaRepository: Repository<CategoriaMesa>,
   ) {}
 
   async create(createDiscotecaDto: CreateDiscotecaDto, personaId?: number) {
@@ -231,6 +237,58 @@ export class DiscotecasService {
     await this.discotecaRepository.update(id, updateData);
 
     return await this.findOne(id);
+  }
+
+  async setupMesas(discotecaId: number, counts: {
+    mesas_redondas?: number;
+    mesas_rectangulares?: number;
+    mesas_vip?: number;
+  }) {
+    const discoteca = await this.discotecaRepository.findOne({ where: { id: discotecaId } });
+    if (!discoteca) throw new NotFoundException('Discoteca no encontrada');
+
+    const tipos = [
+      { nombre: 'Estándar', clave: 'mesas_redondas', forma: 'circular', capacidad: 4, prefijo: 'M' },
+      { nombre: 'Rectangular', clave: 'mesas_rectangulares', forma: 'rectangular', capacidad: 6, prefijo: 'R' },
+      { nombre: 'VIP', clave: 'mesas_vip', forma: 'circular', capacidad: 8, prefijo: 'VIP' },
+    ];
+
+    const mesasCreadas: Mesa[] = [];
+
+    for (const tipo of tipos) {
+      const cantidad: number = counts[tipo.clave] || 0;
+      if (cantidad === 0) continue;
+
+      let categoria = await this.categoriaMesaRepository.findOne({ where: { nombre: tipo.nombre } });
+      if (!categoria) {
+        categoria = await this.categoriaMesaRepository.save(
+          this.categoriaMesaRepository.create({ nombre: tipo.nombre, creado_en: new Date() }),
+        );
+      }
+
+      const precioReserva = tipo.nombre === 'VIP'
+        ? discoteca.precio_mesa_vip
+        : discoteca.precio_minimo_mesa;
+
+      for (let i = 1; i <= cantidad; i++) {
+        const numero = `${tipo.prefijo}-${String(i).padStart(2, '0')}`;
+        const nueva = this.mesaRepository.create({
+          discoteca_id: discotecaId,
+          categoria_id: categoria.id,
+          numero_mesa: numero,
+          capacidad: tipo.capacidad,
+          forma: tipo.forma,
+          estado: 'libre',
+          activa: true,
+          precio_reserva: precioReserva ?? undefined,
+          creado_en: new Date(),
+        });
+        const guardada = await this.mesaRepository.save(nueva);
+        mesasCreadas.push(guardada as Mesa);
+      }
+    }
+
+    return mesasCreadas;
   }
 
   async remove(id: number) {
