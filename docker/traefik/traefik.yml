@@ -1,0 +1,59 @@
+# =====================================================================
+# Traefik static config
+# =====================================================================
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: true
+  insecure: false   # el dashboard se sirve por router con TLS, no por puerto plano
+
+entryPoints:
+  # HTTP plano — útil para clientes que no quieren cargar el cert autofirmado
+  # (LAN/ZeroTier). El JWT viaja en claro: aceptable solo en redes confiables.
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+      middlewares:
+        - crowdsec-bouncer@file
+
+# =====================================================================
+# Plugins (Yaegi). El bouncer de CrowdSec se carga desde aquí.
+# =====================================================================
+experimental:
+  plugins:
+    crowdsec-bouncer-traefik-plugin:
+      moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      version: v1.4.2
+
+# =====================================================================
+# Providers
+# =====================================================================
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: cover_net
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+# =====================================================================
+# Logs (CrowdSec los parsea desde traefik_logs volumen compartido)
+# =====================================================================
+log:
+  level: INFO
+  filePath: /var/log/traefik/traefik.log
+accessLog:
+  filePath: /var/log/traefik/access.log
+  format: json
+  bufferingSize: 0
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep

@@ -7,6 +7,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Cliente } from './cliente.entity';
 import { Personal } from './personal.entity';
 import { VerificacionIdentidad } from './verificacion-identidad.entity';
@@ -22,6 +23,9 @@ export class Persona {
   @Column({ type: 'varchar', length: 100, nullable: true })
   correo: string;
 
+  // Excluido de toda respuesta JSON gracias al ClassSerializerInterceptor
+  // global. Nunca debe filtrarse al cliente.
+  @Exclude({ toPlainOnly: true })
   @Column({ type: 'varchar', length: 255, nullable: true })
   contrasena_hash: string;
 

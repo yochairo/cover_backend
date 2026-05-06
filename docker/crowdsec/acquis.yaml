@@ -1,0 +1,14 @@
+# =====================================================================
+# Fuentes de logs que CrowdSec va a parsear.
+# El volumen `traefik_logs` se monta como /var/log/traefik:ro en este container.
+# =====================================================================
+
+filenames:
+  - /var/log/traefik/access.log
+labels:
+  type: traefik
+---
+filenames:
+  - /var/log/traefik/traefik.log
+labels:
+  type: traefik

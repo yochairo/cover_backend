@@ -10,12 +10,22 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET') || 'clave',
-        signOptions: {
-          expiresIn: configService.get('JWT_EXPIRES') || '1h',
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error(
+            'JWT_SECRET no está configurado. Define la variable de entorno antes de iniciar el servidor.',
+          );
+        }
+        const expiresIn =
+          (configService.get<string>('JWT_EXPIRES') as
+            | `${number}${'s' | 'm' | 'h' | 'd'}`
+            | undefined) || '1h';
+        return {
+          secret,
+          signOptions: { expiresIn },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

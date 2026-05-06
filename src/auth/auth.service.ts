@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { JwtPayload } from './types/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -17,15 +18,21 @@ export class AuthService {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  generateToken(id: number, rol: string): string {
-    return this.jwtService.sign({ id, rol });
+  /**
+   * Firma el JWT incluyendo userId (persona), rol y los ids específicos
+   * de cliente/personal cuando aplican. De ese modo `req.user.clienteId`
+   * o `req.user.personalId` están disponibles en los controladores sin
+   * tener que volver a consultar la BD en cada request.
+   */
+  generateToken(payload: JwtPayload): string {
+    return this.jwtService.sign(payload);
   }
 
-  verifyToken(token: string) {
+  verifyToken(token: string): JwtPayload {
     try {
-      return this.jwtService.verify(token);
+      return this.jwtService.verify<JwtPayload>(token);
     } catch (error) {
-      throw new Error('Token no válido');
+      throw new UnauthorizedException('Token no válido');
     }
   }
 }

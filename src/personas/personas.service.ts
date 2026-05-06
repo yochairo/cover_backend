@@ -5,15 +5,18 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Persona } from '../entities/persona.entity';
 import { Cliente } from '../entities/cliente.entity';
 import { Personal } from '../entities/personal.entity';
 import { AuthService } from '../auth/auth.service';
+import { JwtPayload } from '../auth/types/jwt-payload.interface';
 import { RegisterClienteDto } from './dto/register-cliente.dto';
 import { RegisterPersonalDto } from './dto/register-personal.dto';
 import { LoginDto } from './dto/login.dto';
+
+type RegistrableRol = 'cliente' | 'personal' | 'admin';
 
 @Injectable()
 export class PersonasService {
@@ -24,6 +27,8 @@ export class PersonasService {
     private clienteRepository: Repository<Cliente>,
     @InjectRepository(Personal)
     private personalRepository: Repository<Personal>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     private authService: AuthService,
   ) {}
 
@@ -36,6 +41,7 @@ export class PersonasService {
   }
 
   async registerPersonal(dto: RegisterPersonalDto) {
+    // 'personal' es el rol por defecto cuando un admin invita.
     return this.register(dto, 'personal');
   }
 
@@ -44,6 +50,8 @@ export class PersonasService {
   }
 
   async findAll() {
+    // El campo `contrasena_hash` queda excluido por @Exclude() en la entidad
+    // + ClassSerializerInterceptor global, no hace falta limpiar a mano.
     return await this.personaRepository.find();
   }
 
@@ -54,25 +62,30 @@ export class PersonasService {
       throw new NotFoundException('Persona no encontrada');
     }
 
-    const { contrasena_hash, ...personaSinPassword } = persona;
-    return personaSinPassword;
+    return persona;
   }
 
-  // ==================== MÉTODOS PRIVADOS HELPERS ====================
+  // ==================== HELPERS ====================
 
-  private async validateUniqueEmail(correo: string, rol: string): Promise<void> {
-    const existing = await this.personaRepository.findOne({
+  private async validateUniqueEmail(
+    manager: EntityManager,
+    correo: string,
+    rol: string,
+  ): Promise<void> {
+    const existing = await manager.findOne(Persona, {
       where: { correo: correo.toLowerCase().trim(), rol },
     });
 
     if (existing) {
-      const rolName = rol === 'cliente' ? 'cliente' : 'personal';
-      throw new ConflictException(`El correo ya está registrado como ${rolName}`);
+      throw new ConflictException(`El correo ya está registrado como ${rol}`);
     }
   }
 
-  private async validateUniqueUsername(nombre_usuario: string): Promise<void> {
-    const existing = await this.personaRepository.findOne({
+  private async validateUniqueUsername(
+    manager: EntityManager,
+    nombre_usuario: string,
+  ): Promise<void> {
+    const existing = await manager.findOne(Persona, {
       where: { nombre_usuario },
     });
 
@@ -81,116 +94,143 @@ export class PersonasService {
     }
   }
 
-  private async createPersona(
+  private buildPersona(
     dto: RegisterClienteDto | RegisterPersonalDto,
     hashedPassword: string,
     rol: string,
-  ): Promise<Persona> {
-    const newPersona = this.personaRepository.create({
+  ): Persona {
+    return this.personaRepository.create({
       nombre_usuario: dto.nombre_usuario,
       correo: dto.correo.toLowerCase().trim(),
       contrasena_hash: hashedPassword,
       nombre_completo: dto.nombre_completo,
       telefono: dto.telefono,
       carnet: dto.carnet,
-      fecha_nacimiento: dto.fecha_nacimiento ? new Date(dto.fecha_nacimiento) : undefined,
+      fecha_nacimiento: dto.fecha_nacimiento
+        ? new Date(dto.fecha_nacimiento)
+        : undefined,
       foto_perfil_url: dto.foto_perfil_url,
       rol,
       estado: 'activo',
       creado_en: new Date(),
       actualizado_en: new Date(),
     });
-
-    return await this.personaRepository.save(newPersona);
   }
 
-  private async createClienteRecord(persona_id: number): Promise<void> {
-    const newCliente = this.clienteRepository.create({
-      persona_id,
-      fecha_registro: new Date(),
-    });
-    await this.clienteRepository.save(newCliente);
-  }
-
-  private async createPersonalRecord(persona_id: number): Promise<void> {
-    const newPersonal = this.personalRepository.create({
-      persona_id,
-      fecha_ingreso: new Date(),
-      activo: true,
-    });
-    await this.personalRepository.save(newPersonal);
-  }
-
-  private generateAuthResponse(
+  private buildAuthResponse(
     persona: Persona,
-    rol: string,
-  ): { persona: Partial<Persona>; token: string } {
-    const token = this.authService.generateToken(persona.id, rol);
-    const { contrasena_hash, ...personaSinPassword } = persona;
-    return { persona: personaSinPassword, token };
+    extra: { clienteId?: number; personalId?: number },
+  ): { persona: Persona; token: string } {
+    const payload: JwtPayload = {
+      userId: persona.id,
+      rol: persona.rol,
+      clienteId: extra.clienteId,
+      personalId: extra.personalId,
+    };
+    const token = this.authService.generateToken(payload);
+    return { persona, token };
   }
 
-  // ==================== MÉTODOS GENÉRICOS ====================
+  // ==================== REGISTER (transaccional) ====================
 
   private async register(
     dto: RegisterClienteDto | RegisterPersonalDto,
-    rol: 'cliente' | 'personal',
+    rol: RegistrableRol,
   ) {
-    // Validaciones
-    await this.validateUniqueEmail(dto.correo, rol);
-    await this.validateUniqueUsername(dto.nombre_usuario);
-
-    // Crear persona
     const hashedPassword = await this.authService.hashPassword(dto.contrasena);
-    const savedPersona = await this.createPersona(dto, hashedPassword, rol);
 
-    // Crear registro específico según rol
-    if (rol === 'cliente') {
-      await this.createClienteRecord(savedPersona.id);
-    } else {
-      await this.createPersonalRecord(savedPersona.id);
-    }
+    // Toda la creación (Persona + Cliente|Personal) corre en una sola
+    // transacción: si la segunda inserción falla, la primera se revierte.
+    return this.dataSource.transaction(async (manager) => {
+      await this.validateUniqueEmail(manager, dto.correo, rol);
+      await this.validateUniqueUsername(manager, dto.nombre_usuario);
 
-    // Generar token y retornar
-    return this.generateAuthResponse(savedPersona, rol);
+      const persona = this.buildPersona(dto, hashedPassword, rol);
+      const savedPersona = await manager.save(Persona, persona);
+
+      let extra: { clienteId?: number; personalId?: number } = {};
+
+      if (rol === 'cliente') {
+        const cliente = manager.create(Cliente, {
+          persona_id: savedPersona.id,
+          fecha_registro: new Date(),
+        });
+        const savedCliente = await manager.save(Cliente, cliente);
+        extra = { clienteId: savedCliente.id };
+      } else {
+        const personal = manager.create(Personal, {
+          persona_id: savedPersona.id,
+          fecha_ingreso: new Date(),
+          activo: true,
+        });
+        const savedPersonal = await manager.save(Personal, personal);
+        extra = { personalId: savedPersonal.id };
+      }
+
+      return this.buildAuthResponse(savedPersona, extra);
+    });
   }
 
+  // ==================== LOGIN ====================
+
   private async login(dto: LoginDto, rol: 'cliente' | 'personal') {
-    // Validación de campos requeridos
     if (!dto.correo || !dto.contrasena) {
       throw new BadRequestException('Correo y contraseña son obligatorios');
     }
 
-    // Buscar persona según rol
-    const whereCondition: any = { correo: dto.correo, rol };
-    if (rol === 'cliente') {
-      whereCondition.estado = 'activo';
-    }
+    // En login de personal aceptamos también rol 'admin' para que un
+    // admin pueda autenticarse por la misma puerta.
+    const rolesPermitidos = rol === 'cliente' ? ['cliente'] : ['personal', 'admin'];
 
-    const persona = await this.personaRepository.findOne({
-      where: whereCondition,
-    });
+    const persona = await this.personaRepository
+      .createQueryBuilder('p')
+      .where('LOWER(p.correo) = LOWER(:correo)', { correo: dto.correo })
+      .andWhere('p.rol IN (:...roles)', { roles: rolesPermitidos })
+      .andWhere(rol === 'cliente' ? `p.estado = 'activo'` : '1 = 1')
+      .getOne();
 
     if (!persona) {
       const rolName = rol === 'cliente' ? 'Cliente' : 'Personal de discoteca';
       throw new NotFoundException(`${rolName} no encontrado`);
     }
 
-    // Verificar contraseña
     const isPasswordValid = await this.authService.comparePasswords(
       dto.contrasena,
       persona.contrasena_hash,
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Contraseña incorrecta');
+      // Mismo mensaje genérico que cuando no existe el correo: no leak de cuentas.
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Actualizar último login
+    // Resolver el id específico (clienteId / personalId) que va dentro del JWT.
+    let extra: { clienteId?: number; personalId?: number } = {};
+    if (persona.rol === 'cliente') {
+      const cliente = await this.clienteRepository.findOne({
+        where: { persona_id: persona.id },
+      });
+      if (!cliente) {
+        throw new UnauthorizedException(
+          'La cuenta de cliente está incompleta. Contacta a soporte.',
+        );
+      }
+      extra = { clienteId: cliente.id };
+    } else {
+      const personal = await this.personalRepository.findOne({
+        where: { persona_id: persona.id },
+      });
+      if (!personal) {
+        throw new UnauthorizedException(
+          'La cuenta de personal está incompleta. Contacta a soporte.',
+        );
+      }
+      extra = { personalId: personal.id };
+    }
+
     persona.ultimo_login = new Date();
     await this.personaRepository.save(persona);
 
-    // Generar token y retornar
-    return this.generateAuthResponse(persona, rol);
+    return this.buildAuthResponse(persona, extra);
   }
 }

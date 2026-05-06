@@ -1,0 +1,15 @@
+# =====================================================================
+# TLS — certificado autofirmado wildcard (*.cover.local + cover.local)
+# Generado por scripts/gen-certs.sh
+# =====================================================================
+
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/cover.local.crt
+      keyFile: /etc/traefik/certs/cover.local.key
+      stores:
+        - default
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: false

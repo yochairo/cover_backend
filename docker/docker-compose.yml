@@ -1,0 +1,196 @@
+# ==============================================================================
+# Cover backend — stack completo
+#
+#   traefik            -> reverse proxy + TLS autofirmado + plugin CrowdSec
+#   backend            -> NestJS, escucha :3030 en la red docker (no expuesto)
+#   redis              -> cache / storage del Throttler (no expuesto)
+#   minio              -> object storage S3-compatible (API + Console vía Traefik)
+#   crowdsec           -> motor de detección que parsea logs del Traefik
+#
+# Puertos publicados al host:
+#   8480  -> Traefik HTTP  (redirect a HTTPS)
+#   8443  -> Traefik HTTPS (entrada principal)
+#   8481  -> Traefik dashboard (solo loopback)
+#   9101  -> MinIO Console directo (solo loopback, fallback sin DNS)
+# ==============================================================================
+
+name: cover
+
+networks:
+  cover_net:
+    name: cover_net
+    driver: bridge
+
+volumes:
+  minio_data:
+  redis_data:
+  crowdsec_data:
+  crowdsec_config:
+  traefik_logs:
+
+services:
+  # ---------------------------------------------------------------------------
+  # Traefik
+  # ---------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.6.1
+    container_name: cover_traefik
+    restart: unless-stopped
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "8480:80"          # HTTP -> redirect 308 a HTTPS
+      - "8443:443"         # HTTPS
+      - "127.0.0.1:8481:8080"   # Dashboard (solo loopback)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./traefik/certs:/etc/traefik/certs:ro
+      - ./traefik/secrets:/run/secrets:ro
+      - traefik_logs:/var/log/traefik
+    networks:
+      - cover_net
+    depends_on:
+      - crowdsec
+    labels:
+      - "traefik.enable=true"
+      # Dashboard interno
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.cover.local`)"
+      - "traefik.http.routers.dashboard.priority=100"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=crowdsec-bouncer@file"
+
+  # ---------------------------------------------------------------------------
+  # Backend NestJS
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cover-backend:latest
+    container_name: cover_backend
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      # Sobrescribe lo necesario para que apunte a Redis dentro de la red docker.
+      REDIS_URL: redis://redis:6379
+      # MinIO interno (la app habla por la red privada, no por Traefik).
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_FORCE_PATH_STYLE: "true"
+      S3_BUCKET_PUBLIC: covers-public
+      S3_BUCKET_PRIVATE: covers-private
+      # CORS / public URL (lo que ve el navegador para imágenes públicas firmadas).
+      S3_PUBLIC_BASE_URL: https://s3.cover.local:8443
+      PUBLIC_API_URL: https://api.cover.local:8443
+    depends_on:
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - cover_net
+    labels:
+      - "traefik.enable=true"
+      # Router HTTPS (websecure) — catch-all con prioridad baja
+      - "traefik.http.routers.backend.rule=HostRegexp(`.+`)"
+      - "traefik.http.routers.backend.priority=1"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.services.backend.loadbalancer.server.port=3030"
+      - "traefik.http.routers.backend.middlewares=crowdsec-bouncer@file,security-headers@file"
+      # Router HTTP plano (web) — para clientes en LAN que no quieren cert
+      - "traefik.http.routers.backend-http.rule=HostRegexp(`.+`)"
+      - "traefik.http.routers.backend-http.priority=1"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      - "traefik.http.routers.backend-http.service=backend"
+      - "traefik.http.routers.backend-http.middlewares=crowdsec-bouncer@file,security-headers@file"
+
+  # ---------------------------------------------------------------------------
+  # Redis (interno; storage del Throttler)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: cover_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - cover_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # MinIO (S3 self-hosted)
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: cover_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: https://minio.cover.local:8443
+    volumes:
+      - minio_data:/data
+    ports:
+      # Fallback: la consola también accesible por loopback sin necesidad de hosts file.
+      - "127.0.0.1:9101:9001"
+    networks:
+      - cover_net
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    labels:
+      - "traefik.enable=true"
+      # API S3
+      - "traefik.http.routers.minio-api.rule=Host(`s3.cover.local`)"
+      - "traefik.http.routers.minio-api.priority=100"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls=true"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.routers.minio-api.middlewares=crowdsec-bouncer@file"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+      # Consola web
+      - "traefik.http.routers.minio-console.rule=Host(`minio.cover.local`)"
+      - "traefik.http.routers.minio-console.priority=100"
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls=true"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.routers.minio-console.middlewares=crowdsec-bouncer@file"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+
+  # ---------------------------------------------------------------------------
+  # CrowdSec engine — analiza access logs del Traefik y decide bans
+  # ---------------------------------------------------------------------------
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: cover_crowdsec
+    restart: unless-stopped
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios"
+      GID: "${GID:-1000}"
+      BOUNCER_KEY_TRAEFIK: ${BOUNCER_KEY_TRAEFIK}
+    volumes:
+      - crowdsec_config:/etc/crowdsec
+      - crowdsec_data:/var/lib/crowdsec/data
+      - traefik_logs:/var/log/traefik:ro
+      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+    networks:
+      - cover_net
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

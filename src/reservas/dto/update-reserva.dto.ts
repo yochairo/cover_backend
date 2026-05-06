@@ -1,19 +1,16 @@
-import {
-  IsInt,
-  IsOptional,
-  IsString,
-  IsDateString,
-  Min,
-} from 'class-validator';
+import { IsInt, IsOptional, IsString, IsDateString, Min } from 'class-validator';
 
+/**
+ * Solo expone los campos que un cliente o personal autorizado puede tocar
+ * en un PUT /reservas/:id. `estado`, `precio_total`, `descuento_aplicado`,
+ * `cliente_organizador_id`, fechas de auditoría, etc. se mutan únicamente
+ * por endpoints específicos (/confirmar, /completar, /cancelar) — nunca
+ * por un body genérico, lo que evitaba escalada y mutaciones inesperadas.
+ */
 export class UpdateReservaDto {
   @IsOptional()
   @IsInt()
   mesa_id?: number;
-
-  @IsOptional()
-  @IsInt()
-  promocion_id?: number;
 
   @IsOptional()
   @IsDateString()
@@ -31,12 +28,4 @@ export class UpdateReservaDto {
   @IsOptional()
   @IsString()
   notas?: string;
-
-  @IsOptional()
-  @IsInt()
-  cupon_id?: number;
-
-  @IsOptional()
-  @IsString()
-  estado?: string;
 }

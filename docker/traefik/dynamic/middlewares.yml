@@ -1,0 +1,48 @@
+# =====================================================================
+# Middlewares globales reutilizables
+# =====================================================================
+
+http:
+  middlewares:
+
+    # CrowdSec bouncer — consulta al engine antes de cada request.
+    # Si la IP está en la lista de bans, devuelve 403.
+    crowdsec-bouncer:
+      plugin:
+        crowdsec-bouncer-traefik-plugin:
+          enabled: "true"
+          logLevel: INFO
+          updateIntervalSeconds: 15
+          defaultDecisionSeconds: 60
+          crowdsecMode: live
+          # Lee la key desde archivo — Traefik no expande env vars en YAML dinámico.
+          # bootstrap.sh escribe esta ruta antes de levantar el stack.
+          crowdsecLapiKeyFile: "/run/secrets/lapi-key"
+          crowdsecLapiHost: "crowdsec:8080"
+          crowdsecLapiScheme: http
+          # Upstream confiables — el bouncer extrae la IP real del cliente
+          # de X-Forwarded-For solo si la request llega desde una IP listada.
+          # Pangolin (192.168.10.96) está cubierto por 192.168.0.0/16.
+          forwardedHeadersTrustedIPs:
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+            - "192.168.0.0/16"
+          # IPs que el bouncer NUNCA banea (lista blanca interna).
+          clientTrustedIPs:
+            - "127.0.0.1/32"
+            - "192.168.10.96/32"   # Pangolin — banearlo apaga TODO el tráfico
+
+    # Cabeceras de seguridad para el backend NestJS.
+    # Helmet ya pone bastante; estas son redundancia + algunas que helmet no maneja.
+    security-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: false   # autofirmado, no enrolar HSTS preload list
+        customResponseHeaders:
+          X-Powered-By: ""
+          Server: ""

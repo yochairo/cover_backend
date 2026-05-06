@@ -4,8 +4,8 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateReservaDto } from './dto/create-reserva.dto';
 import { UpdateReservaDto } from './dto/update-reserva.dto';
 import { Reserva } from '../entities/reserva.entity';
@@ -24,102 +24,112 @@ export class ReservasService {
     private clienteRepository: Repository<Cliente>,
     @InjectRepository(ReservaCliente)
     private reservaClienteRepository: Repository<ReservaCliente>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Crea una reserva atómicamente:
+   *  1. Toma lock pesimista sobre la fila de la mesa (serializa solicitudes
+   *     concurrentes para esa mesa).
+   *  2. Verifica conflictos con SQL — no en memoria — filtrando reservas no
+   *     canceladas en la misma fecha/hora.
+   *  3. Inserta la reserva y el `ReservaCliente` del organizador en la misma
+   *     transacción: si el segundo insert falla, la reserva se revierte.
+   *
+   * NOTA: para fortalecerlo aún más se recomienda añadir en BD un índice
+   * único parcial: `UNIQUE (mesa_id, fecha_reserva, hora_reserva) WHERE estado <> 'cancelada'`
+   * (o un EXCLUDE constraint con tstzrange si las reservas pasan a tener rango).
+   */
   async create(createReservaDto: CreateReservaDto, clienteId: number) {
-    // Verificar que la mesa existe y está disponible
-    const mesa = await this.mesaRepository.findOne({
-      where: { id: createReservaDto.mesa_id },
-      relations: ['discoteca'],
-    });
-
-    if (!mesa) {
-      throw new NotFoundException('Mesa no encontrada');
-    }
-
-    if (!mesa.activa) {
-      throw new BadRequestException('La mesa no está disponible para reservas');
-    }
-
-    // Verificar que el cliente existe
-    const cliente = await this.clienteRepository.findOne({
-      where: { id: clienteId },
-    });
-
-    if (!cliente) {
-      throw new NotFoundException('Cliente no encontrado');
-    }
-
-    // Verificar disponibilidad de la mesa en la fecha/hora solicitada
-    const fechaReserva = new Date(createReservaDto.fecha_reserva);
-    const reservasExistentes = await this.reservaRepository.find({
-      where: {
-        mesa_id: createReservaDto.mesa_id,
-      },
-    });
-
-    // Validar que no haya conflicto de horarios
-    const hayConflicto = reservasExistentes.some((reserva) => {
-      if (reserva.estado === 'cancelada' || !reserva.fecha_reserva) {
-        return false;
-      }
-
-      const fechaExistente = new Date(reserva.fecha_reserva);
-      const mismoDia =
-        fechaExistente.toDateString() === fechaReserva.toDateString();
-
-      // Si es el mismo día, verificar hora
-      if (mismoDia && createReservaDto.hora_reserva && reserva.hora_reserva) {
-        return createReservaDto.hora_reserva === reserva.hora_reserva;
-      }
-
-      return mismoDia;
-    });
-
-    if (hayConflicto) {
-      throw new ConflictException(
-        'La mesa ya está reservada para esa fecha/hora',
-      );
-    }
-
-    // Verificar capacidad
-    if (createReservaDto.num_personas > mesa.capacidad) {
+    if (!clienteId) {
       throw new BadRequestException(
-        `La mesa tiene capacidad para ${mesa.capacidad} personas, pero solicitaste ${createReservaDto.num_personas}`,
+        'No se pudo identificar al cliente autenticado',
       );
     }
 
-    // Calcular precio total (por ahora usamos el precio de la mesa)
-    const precioTotal = mesa.precio_reserva || 0;
+    const fechaReserva = new Date(createReservaDto.fecha_reserva);
 
-    // Crear la reserva
-    const nuevaReserva = this.reservaRepository.create({
-      cliente_organizador_id: clienteId,
-      mesa_id: createReservaDto.mesa_id,
-      promocion_id: createReservaDto.promocion_id,
-      fecha_reserva: fechaReserva,
-      hora_reserva: createReservaDto.hora_reserva,
-      num_personas: createReservaDto.num_personas,
-      notas: createReservaDto.notas,
-      cupon_id: createReservaDto.cupon_id,
-      estado: 'pendiente',
-      precio_total: precioTotal,
-      descuento_aplicado: 0,
-      creado_en: new Date(),
-      actualizado_en: new Date(),
+    const reservaId = await this.dataSource.transaction(async (manager) => {
+      // 1) Lock pesimista de la mesa para serializar solicitudes simultáneas.
+      const mesa = await manager.findOne(Mesa, {
+        where: { id: createReservaDto.mesa_id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!mesa) {
+        throw new NotFoundException('Mesa no encontrada');
+      }
+      if (!mesa.activa) {
+        throw new BadRequestException(
+          'La mesa no está disponible para reservas',
+        );
+      }
+      if (createReservaDto.num_personas > mesa.capacidad) {
+        throw new BadRequestException(
+          `La mesa tiene capacidad para ${mesa.capacidad} personas, pero solicitaste ${createReservaDto.num_personas}`,
+        );
+      }
+
+      // 2) Verificar cliente.
+      const cliente = await manager.findOne(Cliente, {
+        where: { id: clienteId },
+      });
+      if (!cliente) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+
+      // 3) Detectar colisión en SQL (estado != cancelada, mismo día, misma hora si aplica).
+      const qb = manager
+        .createQueryBuilder(Reserva, 'r')
+        .where('r.mesa_id = :mesaId', { mesaId: createReservaDto.mesa_id })
+        .andWhere(`r.estado IS NULL OR r.estado <> 'cancelada'`)
+        .andWhere('DATE(r.fecha_reserva) = DATE(:fecha)', { fecha: fechaReserva });
+
+      if (createReservaDto.hora_reserva) {
+        qb.andWhere('r.hora_reserva = :hora', {
+          hora: createReservaDto.hora_reserva,
+        });
+      }
+
+      const conflict = await qb.getOne();
+      if (conflict) {
+        throw new ConflictException(
+          'La mesa ya está reservada para esa fecha/hora',
+        );
+      }
+
+      // 4) Crear reserva y reserva_cliente del organizador.
+      const precioTotal = mesa.precio_reserva || 0;
+
+      const nuevaReserva = manager.create(Reserva, {
+        cliente_organizador_id: clienteId,
+        mesa_id: createReservaDto.mesa_id,
+        promocion_id: createReservaDto.promocion_id,
+        fecha_reserva: fechaReserva,
+        hora_reserva: createReservaDto.hora_reserva,
+        num_personas: createReservaDto.num_personas,
+        notas: createReservaDto.notas,
+        cupon_id: createReservaDto.cupon_id,
+        estado: 'pendiente',
+        precio_total: precioTotal,
+        descuento_aplicado: 0,
+        creado_en: new Date(),
+        actualizado_en: new Date(),
+      });
+      const saved = await manager.save(Reserva, nuevaReserva);
+
+      await manager.save(ReservaCliente, {
+        reserva_id: saved.id,
+        cliente_id: clienteId,
+        es_organizador: true,
+        creado_en: new Date(),
+      });
+
+      return saved.id;
     });
 
-    const reservaGuardada = await this.reservaRepository.save(nuevaReserva);
-
-    // Crear automáticamente el registro del organizador en reservas_clientes
-    await this.reservaClienteRepository.save({
-      reserva_id: reservaGuardada.id,
-      cliente_id: clienteId,
-      es_organizador: true,
-      creado_en: new Date(),
-    });
-
-    return this.findOne(reservaGuardada.id);
+    return this.findOne(reservaId);
   }
 
   async findAll(filtros?: { clienteId?: number; estado?: string }) {
@@ -173,15 +183,18 @@ export class ReservasService {
   async update(id: number, updateReservaDto: UpdateReservaDto) {
     const reserva = await this.findOne(id);
 
-    // No permitir actualizar reservas canceladas o completadas
     if (reserva.estado === 'cancelada' || reserva.estado === 'completada') {
       throw new BadRequestException(
         `No se puede actualizar una reserva ${reserva.estado}`,
       );
     }
 
-    // Actualizar campos
+    // El DTO ya solo expone campos seguros — `estado`, `precio_total`,
+    // `cliente_organizador_id` no son mutables por aquí.
     Object.assign(reserva, updateReservaDto);
+    if (updateReservaDto.fecha_reserva) {
+      reserva.fecha_reserva = new Date(updateReservaDto.fecha_reserva);
+    }
     reserva.actualizado_en = new Date();
 
     await this.reservaRepository.save(reserva);
@@ -192,7 +205,6 @@ export class ReservasService {
   async cancelar(id: number, clienteId: number) {
     const reserva = await this.findOne(id);
 
-    // Verificar que el cliente sea el organizador
     if (reserva.cliente_organizador_id !== clienteId) {
       throw new BadRequestException(
         'Solo el organizador puede cancelar la reserva',
@@ -257,7 +269,6 @@ export class ReservasService {
   async remove(id: number) {
     const reserva = await this.findOne(id);
 
-    // Solo permitir eliminar reservas pendientes
     if (reserva.estado !== 'pendiente') {
       throw new BadRequestException(
         'Solo se pueden eliminar reservas pendientes. Para otras, usa la opción de cancelar.',
