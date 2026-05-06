@@ -86,7 +86,7 @@ services:
       S3_BUCKET_PRIVATE: covers-private
       # CORS / public URL (lo que ve el navegador para imágenes públicas firmadas).
       S3_PUBLIC_BASE_URL: https://s3.cover.local:8443
-      PUBLIC_API_URL: https://api.cover.local:8443
+      PUBLIC_API_URL: http://10.147.18.174:8480
     depends_on:
       redis:
         condition: service_healthy
