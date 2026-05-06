@@ -26,7 +26,20 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
   // 👆 hasta aquí
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`],
+          scriptSrc: [`'self'`, `'unsafe-inline'`],
+          styleSrc: [`'self'`, `'unsafe-inline'`, `https:`],
+          imgSrc: [`'self'`, `data:`, `https:`, `http:`],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
