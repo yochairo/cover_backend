@@ -146,7 +146,7 @@ export class EventosController {
     }
     return {
       success: true,
-      url: `http://localhost:3030/uploads/eventos/${file.filename}`,
+      url: `${process.env.PUBLIC_API_URL || 'http://localhost:3030'}/uploads/eventos/${file.filename}`,
     };
   }
 

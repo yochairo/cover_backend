@@ -11,7 +11,13 @@ import {
   HttpStatus,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { DiscotecasService } from './discotecas.service';
 import { CreateDiscotecaDto } from './dto/create-discoteca.dto';
 import { UpdateDiscotecaDto } from './dto/update-discoteca.dto';
@@ -101,6 +107,35 @@ export class DiscotecasController {
       success: true,
       message: 'Discoteca actualizada exitosamente',
       data: discoteca,
+    };
+  }
+
+  @Post('upload-logo')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('personal')
+  @UseInterceptors(FileInterceptor('logo', {
+    storage: diskStorage({
+      destination: './uploads/discotecas',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `discoteca-${uniqueSuffix}${extname(file.originalname)}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return cb(new BadRequestException('Solo se permiten imágenes JPG, PNG o WebP'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }))
+  async uploadLogo(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No se recibió ningún archivo');
+    }
+    return {
+      success: true,
+      url: `${process.env.PUBLIC_API_URL || 'http://localhost:3030'}/uploads/discotecas/${file.filename}`,
     };
   }
 

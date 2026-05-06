@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { corsConfig } from './config/cors.config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -17,15 +18,17 @@ async function bootstrap() {
 
   app.enableCors(corsConfig);
 
-  // Helmet con CSP relajada solo donde Swagger UI lo necesita.
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+
   app.use(
     helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
       contentSecurityPolicy: {
         directives: {
           defaultSrc: [`'self'`],
           scriptSrc: [`'self'`, `'unsafe-inline'`],
           styleSrc: [`'self'`, `'unsafe-inline'`, `https:`],
-          imgSrc: [`'self'`, `data:`, `https:`],
+          imgSrc: [`'self'`, `data:`, `https:`, `http:`],
         },
       },
       crossOriginEmbedderPolicy: false,
