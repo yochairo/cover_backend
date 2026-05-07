@@ -37,7 +37,18 @@ export class PersonasController {
   }
 
   /**
-   * Solo un admin autenticado puede dar de alta personal.
+   * Registro público para dueños de locales desde la landing page.
+   * Crea una cuenta con rol 'personal' y devuelve token listo para usar.
+   */
+  @Post('registerOwner')
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async registerOwner(@Body() dto: RegisterPersonalDto) {
+    return await this.personasService.registerPersonal(dto);
+  }
+
+  /**
+   * Solo un admin autenticado puede dar de alta personal interno.
    * El primer admin debe sembrarse en BD vía migración/seed manual.
    */
   @Post('registerPersonal')
