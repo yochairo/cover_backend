@@ -217,12 +217,17 @@ export class PersonasService {
       }
       extra = { clienteId: cliente.id };
     } else {
-      const personal = await this.personalRepository.findOne({
+      let personal = await this.personalRepository.findOne({
         where: { persona_id: persona.id },
       });
       if (!personal) {
-        throw new UnauthorizedException(
-          'La cuenta de personal está incompleta. Contacta a soporte.',
+        // Backfill: la cuenta fue creada antes de que existiera la tabla personal.
+        personal = await this.personalRepository.save(
+          this.personalRepository.create({
+            persona_id: persona.id,
+            fecha_ingreso: new Date(),
+            activo: true,
+          }),
         );
       }
       extra = { personalId: personal.id };
