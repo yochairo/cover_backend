@@ -139,6 +139,21 @@ export class DiscotecasController {
     };
   }
 
+  @Post(':id/setup-mesas')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async setupMesas(
+    @Param('id') id: string,
+    @Body() body: { mesas_redondas?: number; mesas_rectangulares?: number; mesas_vip?: number },
+  ) {
+    const mesas = await this.discotecasService.setupMesas(+id, body);
+    return {
+      success: true,
+      message: `${mesas.length} mesas creadas exitosamente`,
+      data: mesas,
+    };
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('personal')
