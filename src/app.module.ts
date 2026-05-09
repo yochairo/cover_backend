@@ -11,6 +11,7 @@ import { EventosModule } from './eventos/eventos.module';
 import { ReservasModule } from './reservas/reservas.module';
 import { MesasModule } from './mesas/mesas.module';
 import { CategoriasMesaModule } from './categorias_mesa/categorias_mesa.module';
+import { MinioModule } from './minio/minio.module';
 
 // Importar entidades
 import * as entities from './entities';
@@ -34,6 +35,7 @@ import * as entities from './entities';
     ReservasModule,
     MesasModule,
     CategoriasMesaModule,
+     MinioModule
   ],
   controllers: [AppController],
   providers: [AppService],
