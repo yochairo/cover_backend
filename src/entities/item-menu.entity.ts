@@ -13,11 +13,11 @@ export class ItemMenu {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'discoteca_id', type: 'integer' })
-  discoteca_id: number;
+  @Column({ name: 'local_id', type: 'integer' })
+  local_id: number;
 
   @ManyToOne(() => Discoteca, (discoteca) => discoteca.items_menu)
-  @JoinColumn({ name: 'discoteca_id' })
+  @JoinColumn({ name: 'local_id' })
   discoteca: Discoteca;
 
   @Column({ name: 'categoria_menu_id', type: 'integer' })

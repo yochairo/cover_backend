@@ -10,6 +10,7 @@ import {
 import { Cliente } from './cliente.entity';
 import { Personal } from './personal.entity';
 import { VerificacionIdentidad } from './verificacion-identidad.entity';
+import { Relacionador } from './relacionador.entity';
 
 @Entity('personas')
 export class Persona {
@@ -60,6 +61,9 @@ export class Persona {
 
   @OneToMany(() => Personal, (personal) => personal.persona)
   personals: Personal[];
+
+  @OneToMany(() => Relacionador, (relacionador) => relacionador.persona)
+  relacionadores: Relacionador[];
 
   @OneToOne(
     () => VerificacionIdentidad,

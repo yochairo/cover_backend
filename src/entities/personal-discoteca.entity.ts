@@ -8,7 +8,7 @@ import {
 import { Personal } from './personal.entity';
 import { Discoteca } from './discoteca.entity';
 
-@Entity('personal_discotecas')
+@Entity('local_administrador')
 export class PersonalDiscoteca {
   @PrimaryGeneratedColumn()
   id: number;
@@ -23,14 +23,14 @@ export class PersonalDiscoteca {
   @JoinColumn({ name: 'personal_id' })
   personal: Personal;
 
-  @Column({ name: 'discoteca_id', type: 'integer' })
-  discoteca_id: number;
+  @Column({ name: 'local_id', type: 'integer' })
+  local_id: number;
 
   @ManyToOne(() => Discoteca, (discoteca) => discoteca.personal_discotecas, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'discoteca_id' })
+  @JoinColumn({ name: 'local_id' })
   discoteca: Discoteca;
 
   @Column({ type: 'varchar', length: 50 })

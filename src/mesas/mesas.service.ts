@@ -25,7 +25,7 @@ export class MesasService {
   async create(createMesaDto: CreateMesaDto) {
     // Verificar que la discoteca existe
     const discoteca = await this.discotecaRepository.findOne({
-      where: { id: createMesaDto.discoteca_id },
+      where: { id: createMesaDto.local_id },
     });
 
     if (!discoteca) {
@@ -44,7 +44,7 @@ export class MesasService {
     // Verificar que el número de mesa no esté duplicado en la misma discoteca
     const mesaExistente = await this.mesaRepository.findOne({
       where: {
-        discoteca_id: createMesaDto.discoteca_id,
+        local_id: createMesaDto.local_id,
         numero_mesa: createMesaDto.numero_mesa,
         activa: true,
       },
@@ -58,7 +58,7 @@ export class MesasService {
 
     // Crear la mesa
     const nuevaMesa = this.mesaRepository.create({
-      discoteca_id: createMesaDto.discoteca_id,
+      local_id: createMesaDto.local_id,
       categoria_id: createMesaDto.categoria_id,
       numero_mesa: createMesaDto.numero_mesa,
       capacidad: createMesaDto.capacidad,
@@ -84,7 +84,7 @@ export class MesasService {
     const where: any = {};
 
     if (filtros?.discotecaId) {
-      where.discoteca_id = filtros.discotecaId;
+      where.local_id = filtros.discotecaId;
     }
 
     if (filtros?.activa !== undefined) {
@@ -116,7 +116,7 @@ export class MesasService {
 
   async findByDiscoteca(discotecaId: number) {
     return await this.mesaRepository.find({
-      where: { discoteca_id: discotecaId, activa: true },
+      where: { local_id: discotecaId, activa: true },
       relations: ['categoria', 'zona'],
       order: { numero_mesa: 'ASC' },
     });
@@ -125,7 +125,7 @@ export class MesasService {
   async findDisponibles(discotecaId: number) {
     return await this.mesaRepository.find({
       where: {
-        discoteca_id: discotecaId,
+        local_id: discotecaId,
         estado: 'libre',
         activa: true,
       },
@@ -141,7 +141,7 @@ export class MesasService {
     if (updateMesaDto.numero_mesa && updateMesaDto.numero_mesa !== mesa.numero_mesa) {
       const mesaExistente = await this.mesaRepository.findOne({
         where: {
-          discoteca_id: mesa.discoteca_id,
+          local_id: mesa.local_id,
           numero_mesa: updateMesaDto.numero_mesa,
           activa: true,
         },

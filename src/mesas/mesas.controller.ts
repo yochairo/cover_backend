@@ -17,6 +17,7 @@ import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('mesas')
 export class MesasController {
@@ -24,7 +25,7 @@ export class MesasController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createMesaDto: CreateMesaDto) {
     const mesa = await this.mesasService.create(createMesaDto);
@@ -80,7 +81,7 @@ export class MesasController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async update(@Param('id') id: string, @Body() updateMesaDto: UpdateMesaDto) {
     const mesa = await this.mesasService.update(+id, updateMesaDto);
     return {
@@ -92,7 +93,7 @@ export class MesasController {
 
   @Put(':id/estado')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async cambiarEstado(
     @Param('id') id: string,
     @Body('estado') estado: string,
@@ -107,7 +108,7 @@ export class MesasController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
     const resultado = await this.mesasService.remove(+id);

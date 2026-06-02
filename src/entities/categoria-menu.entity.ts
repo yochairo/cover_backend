@@ -21,6 +21,7 @@ export class CategoriaMenu {
   @JoinColumn({ name: 'discoteca_id' })
   discoteca: Discoteca;
 
+
   @Column({ type: 'varchar' })
   nombre: string;
 

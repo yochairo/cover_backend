@@ -5,6 +5,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 import { VerificacionesService } from './verificaciones.service';
 
 import { SolicitarVerificacionDto } from './dto/solicitar-verificacion.dto';
@@ -20,7 +21,7 @@ export class VerificacionesController {
 
   // El cliente sube su documentación
   @Post('solicitar')
-  @Roles('cliente')
+  @Roles(UserRole.CLIENTE)
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'foto_carnet_frontal', maxCount: 1 },
     { name: 'foto_carnet_reverso', maxCount: 1 },
@@ -43,7 +44,7 @@ export class VerificacionesController {
 
   // El cliente ve su propio estado
   @Get('mi-estado')
-  @Roles('cliente')
+  @Roles(UserRole.CLIENTE)
   async getMiEstado(@Req() req: any): Promise<VerificacionIdentidad> {
     return await this.service.findOneByPersona(req.user.userId);
   }

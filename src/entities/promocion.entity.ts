@@ -14,11 +14,11 @@ export class Promocion {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'discoteca_id', type: 'integer' })
-  discoteca_id: number;
+  @Column({ name: 'local_id', type: 'integer' })
+  local_id: number;
 
   @ManyToOne(() => Discoteca, (discoteca) => discoteca.promociones)
-  @JoinColumn({ name: 'discoteca_id' })
+  @JoinColumn({ name: 'local_id' })
   discoteca: Discoteca;
 
   @Column({ type: 'varchar', length: 30, nullable: true })

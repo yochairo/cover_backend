@@ -18,6 +18,7 @@ import { UpdateReservaDto } from './dto/update-reserva.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('reservas')
 export class ReservasController {
@@ -25,7 +26,7 @@ export class ReservasController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('cliente')
+  @Roles(UserRole.CLIENTE)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createReservaDto: CreateReservaDto, @Request() req) {
     const clienteId = req.user.clienteId;
@@ -64,7 +65,7 @@ export class ReservasController {
 
   @Get('mesa/:mesaId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async findByMesa(@Param('mesaId') mesaId: string) {
     const reservas = await this.reservasService.findByMesa(+mesaId);
     return {
@@ -85,7 +86,7 @@ export class ReservasController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async update(
     @Param('id') id: string,
     @Body() updateReservaDto: UpdateReservaDto,
@@ -100,7 +101,7 @@ export class ReservasController {
 
   @Put(':id/cancelar')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('cliente')
+  @Roles(UserRole.CLIENTE)
   async cancelar(@Param('id') id: string, @Request() req) {
     const clienteId = req.user.clienteId;
     const reserva = await this.reservasService.cancelar(+id, clienteId);
@@ -113,7 +114,7 @@ export class ReservasController {
 
   @Put(':id/confirmar')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async confirmar(@Param('id') id: string) {
     const reserva = await this.reservasService.confirmar(+id);
     return {
@@ -125,7 +126,7 @@ export class ReservasController {
 
   @Put(':id/completar')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async completar(@Param('id') id: string) {
     const reserva = await this.reservasService.completar(+id);
     return {
@@ -137,7 +138,7 @@ export class ReservasController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
     const resultado = await this.reservasService.remove(+id);

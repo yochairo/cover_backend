@@ -24,11 +24,11 @@ export class Personal {
   @Column({ type: 'varchar', length: 50, nullable: true })
   numero_referencia: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  tipo_contrato: string;
-
   @Column({ type: 'date', nullable: true })
   fecha_ingreso: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fecha_valides: Date;
 
   @Column({ type: 'boolean', default: true })
   activo: boolean;

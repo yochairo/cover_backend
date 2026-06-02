@@ -1,0 +1,38 @@
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsDateString,
+} from 'class-validator';
+
+export class RegisterRelacionadorDto {
+  @IsString()
+  @IsNotEmpty()
+  nombre_usuario: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  correo: string;
+
+  @IsString()
+  @MinLength(6)
+  contrasena: string;
+
+  @IsString()
+  @IsNotEmpty()
+  nombre_completo: string;
+
+  @IsString()
+  @IsOptional()
+  telefono?: string;
+
+  @IsString()
+  @IsOptional()
+  carnet?: string;
+
+  @IsDateString()
+  @IsOptional()
+  fecha_nacimiento?: string;
+}

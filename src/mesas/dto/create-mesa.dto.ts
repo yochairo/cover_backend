@@ -11,7 +11,7 @@ import {
 export class CreateMesaDto {
   @IsInt()
   @IsNotEmpty()
-  discoteca_id: number;
+  local_id: number;
 
   @IsInt()
   @IsNotEmpty()

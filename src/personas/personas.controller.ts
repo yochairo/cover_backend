@@ -11,6 +11,8 @@ import {
 import { PersonasService } from './personas.service';
 import { RegisterClienteDto } from './dto/register-cliente.dto';
 import { RegisterPersonalDto } from './dto/register-personal.dto';
+import { RegisterColectivoDto } from './dto/register-colectivo.dto';
+import { RegisterRelacionadorDto } from './dto/register-relacionador.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -40,6 +42,30 @@ export class PersonasController {
   @HttpCode(HttpStatus.OK)
   async loginPersonal(@Body() dto: LoginDto) {
     return await this.personasService.loginPersonal(dto);
+  }
+
+  @Post('registerColectivo')
+  @HttpCode(HttpStatus.CREATED)
+  async registerColectivo(@Body() dto: RegisterColectivoDto) {
+    return await this.personasService.registerColectivo(dto);
+  }
+
+  @Post('loginColectivo')
+  @HttpCode(HttpStatus.OK)
+  async loginColectivo(@Body() dto: LoginDto) {
+    return await this.personasService.loginColectivo(dto);
+  }
+
+  @Post('registerRelacionador')
+  @HttpCode(HttpStatus.CREATED)
+  async registerRelacionador(@Body() dto: RegisterRelacionadorDto) {
+    return await this.personasService.registerRelacionador(dto);
+  }
+
+  @Post('loginRelacionador')
+  @HttpCode(HttpStatus.OK)
+  async loginRelacionador(@Body() dto: LoginDto) {
+    return await this.personasService.loginRelacionador(dto);
   }
 
   @Get()

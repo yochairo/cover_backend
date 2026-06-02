@@ -9,16 +9,16 @@ import {
 import { Discoteca } from './discoteca.entity';
 import { Mesa } from './mesa.entity';
 
-@Entity('zonas_discoteca')
+@Entity('zonas_local')
 export class ZonaDiscoteca {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'discoteca_id', type: 'integer' })
-  discoteca_id: number;
+  @Column({ name: 'local_id', type: 'integer' })
+  local_id: number;
 
   @ManyToOne(() => Discoteca, (discoteca) => discoteca.zonas)
-  @JoinColumn({ name: 'discoteca_id' })
+  @JoinColumn({ name: 'local_id' })
   discoteca: Discoteca;
 
   @Column({ type: 'varchar' })

@@ -18,6 +18,7 @@ import { UpdateDiscotecaDto } from './dto/update-discoteca.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('discotecas')
 export class DiscotecasController {
@@ -25,7 +26,7 @@ export class DiscotecasController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDiscotecaDto: CreateDiscotecaDto, @Request() req) {
     const discoteca = await this.discotecasService.create(createDiscotecaDto, req.user?.userId);
@@ -88,7 +89,7 @@ export class DiscotecasController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async update(
     @Param('id') id: string,
     @Body() updateDiscotecaDto: UpdateDiscotecaDto,
@@ -106,7 +107,7 @@ export class DiscotecasController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async remove(@Param('id') id: string) {
     const resultado = await this.discotecasService.remove(+id);
     return {

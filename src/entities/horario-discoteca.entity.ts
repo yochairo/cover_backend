@@ -7,16 +7,16 @@ import {
 } from 'typeorm';
 import { Discoteca } from './discoteca.entity';
 
-@Entity('horarios_discoteca')
+@Entity('horarios_local')
 export class HorarioDiscoteca {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'discoteca_id', type: 'integer' })
-  discoteca_id: number;
+  @Column({ name: 'local_id', type: 'integer' })
+  local_id: number;
 
   @ManyToOne(() => Discoteca, (discoteca) => discoteca.horarios)
-  @JoinColumn({ name: 'discoteca_id' })
+  @JoinColumn({ name: 'local_id' })
   discoteca: Discoteca;
 
   @Column({ type: 'varchar' })

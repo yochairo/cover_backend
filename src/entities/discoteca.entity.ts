@@ -16,7 +16,7 @@ import { FotoDiscoteca } from './foto-discoteca.entity';
 import { HorarioDiscoteca } from './horario-discoteca.entity';
 import { ZonaDiscoteca } from './zona-discoteca.entity';
 
-@Entity('discotecas')
+@Entity('locales')
 export class Discoteca {
   @PrimaryGeneratedColumn()
   id: number;
@@ -35,12 +35,6 @@ export class Discoteca {
 
   @Column({ type: 'integer', nullable: true })
   capacidad_total: number;
-
-  @Column({ type: 'time', nullable: true })
-  horario_apertura: string;
-
-  @Column({ type: 'time', nullable: true })
-  horario_cierre: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   estado: string;
@@ -72,12 +66,6 @@ export class Discoteca {
   @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
   longitud: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  precio_minimo_mesa: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  precio_mesa_vip: number;
-
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0, nullable: true })
   rating_promedio: number;
 
@@ -92,6 +80,12 @@ export class Discoteca {
 
   @Column({ type: 'timestamp', nullable: true })
   fecha_verificacion: Date;
+
+  @Column({ type: 'json', nullable: true })
+  horarios_local: object;
+
+  @Column({ type: 'json', nullable: true })
+  precios: object;
 
   @OneToMany(() => Evento, (evento) => evento.discoteca)
   eventos: Evento[];

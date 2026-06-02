@@ -25,3 +25,7 @@ export { FotoDiscoteca } from './foto-discoteca.entity';
 export { HorarioDiscoteca } from './horario-discoteca.entity';
 export { InvitacionMesa } from './invitacion-mesa.entity';
 export { VerificacionIdentidad } from './verificacion-identidad.entity';
+export { Colectivo } from './colectivo.entity';
+export { ColectivoAdministrador } from './colectivo-administrador.entity';
+export { Relacionador } from './relacionador.entity';
+export { EventoRelacionador } from './evento-relacionador.entity';

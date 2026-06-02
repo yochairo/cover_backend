@@ -97,7 +97,7 @@ export class EventosService {
   async update(id: number, updateEventoDto: UpdateEventoDto): Promise<Evento> {
     const evento = await this.findOne(id);
 
-    if (updateEventoDto.discoteca_id && updateEventoDto.discoteca_id !== evento.discoteca_id) {
+    if (updateEventoDto.discoteca_id && updateEventoDto.discoteca_id !== evento.local_id) {
       const discoteca = await this.discotecaRepository.findOne({
         where: { id: updateEventoDto.discoteca_id }
       });

@@ -23,6 +23,7 @@ import { UpdateEventoDto } from './dto/update-evento.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('eventos')
 export class EventosController {
@@ -30,7 +31,7 @@ export class EventosController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createEventoDto: CreateEventoDto) {
     const evento = await this.eventosService.create(createEventoDto);
@@ -93,7 +94,7 @@ export class EventosController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async update(
     @Param('id') id: string,
     @Body() updateEventoDto: UpdateEventoDto,
@@ -108,7 +109,7 @@ export class EventosController {
 
   @Put(':id/estado')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async cambiarEstado(
     @Param('id') id: string,
     @Body('estado') estado: string,
@@ -123,7 +124,7 @@ export class EventosController {
 
   @Post('upload-imagen')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @UseInterceptors(FileInterceptor('imagen', {
     storage: diskStorage({
       destination: './uploads/eventos',
@@ -152,7 +153,7 @@ export class EventosController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
     await this.eventosService.remove(+id);

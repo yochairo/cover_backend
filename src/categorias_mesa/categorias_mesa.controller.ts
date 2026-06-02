@@ -16,6 +16,7 @@ import { UpdateCategoriasMesaDto } from './dto/update-categorias_mesa.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @Controller('categorias-mesa')
 export class CategoriasMesaController {
@@ -25,7 +26,7 @@ export class CategoriasMesaController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createCategoriasMesaDto: CreateCategoriasMesaDto) {
     const categoria = await this.categoriasMesaService.create(
@@ -58,7 +59,7 @@ export class CategoriasMesaController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   async update(
     @Param('id') id: string,
     @Body() updateCategoriasMesaDto: UpdateCategoriasMesaDto,
@@ -76,7 +77,7 @@ export class CategoriasMesaController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('personal')
+  @Roles(UserRole.PERSONAL)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
     const resultado = await this.categoriasMesaService.remove(+id);
