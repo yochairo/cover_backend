@@ -54,7 +54,7 @@ export class DiscotecasService {
       if (personal) {
         await this.personalDiscotecaRepository.save({
           personal_id: personal.id,
-          discoteca_id: discotecaGuardada.id,
+          local_id: discotecaGuardada.id,
           rol_personal: 'propietario',
           creado_en: new Date(),
         });
