@@ -1,13 +1,11 @@
 import {
   IsString,
   IsInt,
-  IsDate,
   IsOptional,
-  IsBoolean,
   IsNumber,
   Min,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CreateEventoDto {
   @IsString()
@@ -15,44 +13,19 @@ export class CreateEventoDto {
 
   @IsOptional()
   @IsString()
-  descripcion?: string;
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  fecha_inicio?: Date;
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  fecha_fin?: Date;
-
-  @IsInt()
-  discoteca_id: number;
-
-  @IsOptional()
-  @IsString()
   tipo_evento?: string;
 
   @IsOptional()
-  @IsInt()
-  edad_minima?: number;
-
-  @IsOptional()
   @IsString()
-  codigo_vestimenta?: string;
+  descripcion?: string;
 
   @IsOptional()
-  @IsBoolean()
-  entrada_gratuita?: boolean;
+  @IsDateString()
+  fecha_inicio?: string;
 
   @IsOptional()
-  @IsInt()
-  capacidad_maxima?: number;
-
-  @IsOptional()
-  @IsString()
-  estado?: string;
+  @IsDateString()
+  fecha_fin?: string;
 
   @IsOptional()
   @IsString()
@@ -62,4 +35,24 @@ export class CreateEventoDto {
   @IsNumber()
   @Min(0)
   precio_entrada?: number;
+
+  @IsOptional()
+  @IsInt()
+  local_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  colectivos_id?: number;
+
+  @IsOptional()
+  @IsInt()
+  aforo_maximo?: number;
+
+  @IsOptional()
+  @IsString()
+  organizador_principal?: string;
+
+  @IsOptional()
+  @IsString()
+  slug?: string;
 }

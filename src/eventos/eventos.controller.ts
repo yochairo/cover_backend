@@ -2,14 +2,15 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Param,
   Put,
   Delete,
+  Body,
+  Param,
   Query,
+  UseGuards,
+  Req,
   HttpCode,
   HttpStatus,
-  UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -29,102 +30,77 @@ import { UserRole } from '../common/enums/roles.enum';
 export class EventosController {
   constructor(private readonly eventosService: EventosService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PERSONAL)
-  @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createEventoDto: CreateEventoDto) {
-    const evento = await this.eventosService.create(createEventoDto);
-    return {
-      success: true,
-      message: 'Evento creado exitosamente',
-      data: evento,
-    };
-  }
+  // ==================== PÚBLICOS ====================
 
   @Get()
-  async findAll(@Query('discotecaId') discotecaId?: string) {
-    let eventos;
-    
-    if (discotecaId) {
-      eventos = await this.eventosService.findByDiscoteca(+discotecaId);
-    } else {
-      eventos = await this.eventosService.findAll();
-    }
-    
-    return {
-      success: true,
-      data: eventos,
-    };
+  async findAll() {
+    return await this.eventosService.findAll();
   }
 
   @Get('proximos')
   async findProximos() {
-    const eventos = await this.eventosService.findProximosEventos();
-    return {
-      success: true,
-      data: eventos,
-    };
+    return await this.eventosService.findProximos();
   }
 
-  @Get('activos')
-  async findActivos(@Query('discotecaId') discotecaId?: string) {
-    let eventos;
-    
-    if (discotecaId) {
-      eventos = await this.eventosService.findActivosByDiscoteca(+discotecaId);
-    } else {
-      eventos = await this.eventosService.findActivos();
-    }
-    
-    return {
-      success: true,
-      data: eventos,
-    };
+  @Get('local/:localId')
+  async findByLocal(@Param('localId') localId: string) {
+    return await this.eventosService.findByLocal(+localId);
+  }
+
+  @Get('colectivo/:colectivoId')
+  async findByColectivo(@Param('colectivoId') colectivoId: string) {
+    return await this.eventosService.findByColectivo(+colectivoId);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const evento = await this.eventosService.findOne(+id);
-    return {
-      success: true,
-      data: evento,
-    };
+    return await this.eventosService.findOne(+id);
   }
 
+  // ==================== AUTENTICADOS ====================
+
+  // Mis eventos (local o colectivo)
+  @Get('mis-eventos')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PERSONAL, UserRole.COLECTIVO)
+  async findMisEventos(@Req() req: any) {
+    return await this.eventosService.findMisEventos(req.user.userId, req.user.rol);
+  }
+
+  // Crear evento
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PERSONAL, UserRole.COLECTIVO)
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() dto: CreateEventoDto, @Req() req: any) {
+    return await this.eventosService.create(dto, req.user.userId, req.user.rol);
+  }
+
+  // Editar evento
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PERSONAL)
+  @Roles(UserRole.PERSONAL, UserRole.COLECTIVO)
   async update(
     @Param('id') id: string,
-    @Body() updateEventoDto: UpdateEventoDto,
+    @Body() dto: UpdateEventoDto,
+    @Req() req: any,
   ) {
-    const evento = await this.eventosService.update(+id, updateEventoDto);
-    return {
-      success: true,
-      message: 'Evento actualizado exitosamente',
-      data: evento,
-    };
+    return await this.eventosService.update(+id, dto, req.user.userId, req.user.rol);
   }
 
-  @Put(':id/estado')
+  // Cancelar evento (soft delete)
+  @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PERSONAL)
-  async cambiarEstado(
-    @Param('id') id: string,
-    @Body('estado') estado: string,
-  ) {
-    const evento = await this.eventosService.cambiarEstado(+id, estado);
-    return {
-      success: true,
-      message: 'Estado del evento actualizado exitosamente',
-      data: evento,
-    };
+  @Roles(UserRole.PERSONAL, UserRole.COLECTIVO)
+  @HttpCode(HttpStatus.OK)
+  async cancelar(@Param('id') id: string, @Req() req: any) {
+    return await this.eventosService.cancelar(+id, req.user.userId, req.user.rol);
   }
 
+  // Subir imagen del evento
   @Post('upload-imagen')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PERSONAL)
+  @Roles(UserRole.PERSONAL, UserRole.COLECTIVO)
   @UseInterceptors(FileInterceptor('imagen', {
     storage: diskStorage({
       destination: './uploads/eventos',
@@ -139,27 +115,10 @@ export class EventosController {
       }
       cb(null, true);
     },
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 5 * 1024 * 1024 },
   }))
   async uploadImagen(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('No se recibió ningún archivo');
-    }
-    return {
-      success: true,
-      url: `http://localhost:3030/uploads/eventos/${file.filename}`,
-    };
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PERSONAL)
-  @HttpCode(HttpStatus.OK)
-  async remove(@Param('id') id: string) {
-    await this.eventosService.remove(+id);
-    return {
-      success: true,
-      message: 'Evento eliminado exitosamente',
-    };
+    if (!file) throw new BadRequestException('No se recibió ningún archivo');
+    return { url: `http://localhost:3030/uploads/eventos/${file.filename}` };
   }
 }
